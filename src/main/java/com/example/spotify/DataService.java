@@ -23,8 +23,10 @@ public class DataService {
     @PostConstruct
     public void init() {
         JSONArray data = collectExtendedData();
-        System.out.println("Total JSON entries: " + data.length());
 
+        Map skipped = skippedTracks(data);
+        sortAndSizeMap(skipped, 20);
+        prettyPrintMap(skipped);
     }
 
     private JSONArray collectExtendedData() {
@@ -48,6 +50,7 @@ public class DataService {
         }
         return res;
     }
+
     public static Map<String, Integer> topSkippedTracks(JSONArray array, int size, int seconds) {
         Map<String, Integer> map = new LinkedHashMap<>();
         seconds = seconds * 1000;
@@ -98,7 +101,7 @@ public class DataService {
         map.forEach((k, v) -> System.out.println(k + ": " + v));
     }
 
-    public static Map<String, Integer> getTopTracks(JSONArray array, int size) {
+    public static Map<String, Integer> topTracks(JSONArray array, int size) {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
@@ -112,7 +115,7 @@ public class DataService {
         return map;
     }
 
-    public static Map<String, Integer> getTopArtists(JSONArray array, int size) {
+    public static Map<String, Integer> topArtists(JSONArray array, int size) {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
@@ -125,6 +128,35 @@ public class DataService {
         sortAndSizeMap(map, size);
         return map;
     }
+
+    public static Map<String, Integer> topAlbums(JSONArray array, int size) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject entry = array.getJSONObject(i);
+            String album = entry.optString("master_metadata_album_album_name", null);
+            if (album != null) {
+                map.put(album, map.containsKey(album) ? map.get(album) + 1 : 1);
+            }
+        }
+        sortAndSizeMap(map, size);
+        return map;
+    }
+
+    public static Map<String, Integer> skippedTracks(JSONArray array) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject entry = array.getJSONObject(i);
+            boolean skipped = entry.optBoolean("skipped", false);
+            String track = entry.optString("master_metadata_track_name", null);
+            if (skipped && track != null) {
+                map.put(track, map.getOrDefault(track, 0) + 1);
+            }
+        }
+        return map;
+    }
+
 }
 
 
