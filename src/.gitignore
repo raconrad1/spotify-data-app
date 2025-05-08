@@ -9,5 +9,10 @@
 
 
 /spotify-data/
+/Spotify Extended Streaming History/
+../run.sh
 
-run.sh
+.idea/
+../.env
+pom.xml
+/resources/
