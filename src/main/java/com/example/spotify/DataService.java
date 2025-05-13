@@ -25,8 +25,8 @@ public class DataService {
     public void init() {
         JSONArray data = collectExtendedData();
 
-        Map map = topArtistsByUniquePlays(data, 50);
-        prettyPrintMap(map);
+        Map map = topTracksByPlays(data);
+        System.out.println(map);
     }
 
     private JSONArray collectExtendedData() {
@@ -68,7 +68,7 @@ public class DataService {
         return map;
     }
 
-    public static Map<String, Integer> topTimeListened(JSONArray array, int size) {
+    public static Map<String, Integer> topTimeListened(JSONArray array) {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
@@ -80,7 +80,6 @@ public class DataService {
                 map.put(artist, map.containsKey(artist) ? map.get(artist) + minutes : minutes);
             }
         }
-        sortAndSizeMap(map, size);
         return map;
     }
 
@@ -101,7 +100,7 @@ public class DataService {
         map.forEach((k, v) -> System.out.println(k + ": " + v));
     }
 
-    public static Map<String, Integer> topTracksByPlays(JSONArray array, int size) {
+    public static Map<String, Integer> topTracksByPlays(JSONArray array) {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
@@ -111,11 +110,10 @@ public class DataService {
                 map.put(track, map.containsKey(track) ? map.get(track) + 1 : 1);
             }
         }
-        sortAndSizeMap(map, size);
         return map;
     }
 
-    public static Map<String, Integer> topArtistsByPlays(JSONArray array, int size) {
+    public static Map<String, Integer> topArtistsByPlays(JSONArray array) {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
@@ -125,11 +123,10 @@ public class DataService {
                 map.put(artist, map.containsKey(artist) ? map.get(artist) + 1 : 1);
             }
         }
-        sortAndSizeMap(map, size);
         return map;
     }
 
-    public static Map<String, Integer> topAlbumsByPlays(JSONArray array, int size) {
+    public static Map<String, Integer> topAlbumsByPlays(JSONArray array) {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
@@ -139,7 +136,6 @@ public class DataService {
                 map.put(album, map.containsKey(album) ? map.get(album) + 1 : 1);
             }
         }
-        sortAndSizeMap(map, size);
         return map;
     }
 
@@ -183,7 +179,7 @@ public class DataService {
         return map;
     }
 
-    public static Map<String, Integer> topArtistsByUniquePlays(JSONArray array, int size) {
+    public static Map<String, Integer> topArtistsByUniquePlays(JSONArray array) {
         Map<String, Integer> map = new LinkedHashMap<>();
         Set<String> seenTracks = new HashSet<>();
 
@@ -196,7 +192,6 @@ public class DataService {
                 map.put(artist, map.getOrDefault(artist, 0) + 1);
             }
         }
-        sortAndSizeMap(map, size);
         return map;
     }
 
