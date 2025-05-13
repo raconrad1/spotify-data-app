@@ -25,8 +25,12 @@ public class DataService {
     public void init() {
         JSONArray data = collectExtendedData();
 
-        Map map = topTracksByPlays(data);
-        System.out.println(map);
+//        Map map = topTracksByPlays(data);
+        JSONArray tracks = singleArtistData(data, "jpegmafia");
+        Map<String, Integer> tracksMap = topTracksByPlays(tracks);
+        sortAndSizeMap(tracksMap, tracksMap.size());
+        prettyPrintMap(tracksMap);
+
     }
 
     private JSONArray collectExtendedData() {
@@ -193,6 +197,45 @@ public class DataService {
             }
         }
         return map;
+    }
+
+    public static JSONArray singleTrackData(JSONArray array, String track) {
+        JSONArray res = new JSONArray();
+
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject entry = array.getJSONObject(i);
+            String entryTrack = entry.optString("master_metadata_track_name", null);
+            if (entryTrack != null && entryTrack.equalsIgnoreCase(track)) {
+                res.put(entry);
+            }
+        }
+        return res;
+    }
+
+    public static JSONArray singleAlbumData(JSONArray array, String album) {
+        JSONArray res = new JSONArray();
+
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject entry = array.getJSONObject(i);
+            String entryAlbum = entry.optString("master_metadata_album_album_name", null);
+            if (entryAlbum != null && entryAlbum.equalsIgnoreCase(album)) {
+                res.put(entry);
+            }
+        }
+        return res;
+    }
+
+    public static JSONArray singleArtistData(JSONArray array, String artist) {
+        JSONArray res = new JSONArray();
+
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject entry = array.getJSONObject(i);
+            String entryArtist = entry.optString("master_metadata_album_artist_name", null);
+            if (entryArtist != null && entryArtist.equalsIgnoreCase(artist)) {
+                res.put(entry);
+            }
+        }
+        return res;
     }
 
 
