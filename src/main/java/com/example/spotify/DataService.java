@@ -6,13 +6,14 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.print.DocFlavor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 public class DataService {
@@ -24,9 +25,8 @@ public class DataService {
     public void init() {
         JSONArray data = collectExtendedData();
 
-        Map skipped = skippedTracks(data);
-        sortAndSizeMap(skipped, 20);
-        prettyPrintMap(skipped);
+        Map map = topArtistsByUniquePlays(data, 50);
+        prettyPrintMap(map);
     }
 
     private JSONArray collectExtendedData() {
@@ -101,7 +101,7 @@ public class DataService {
         map.forEach((k, v) -> System.out.println(k + ": " + v));
     }
 
-    public static Map<String, Integer> topTracks(JSONArray array, int size) {
+    public static Map<String, Integer> topTracksByPlays(JSONArray array, int size) {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
@@ -115,7 +115,7 @@ public class DataService {
         return map;
     }
 
-    public static Map<String, Integer> topArtists(JSONArray array, int size) {
+    public static Map<String, Integer> topArtistsByPlays(JSONArray array, int size) {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
@@ -129,7 +129,7 @@ public class DataService {
         return map;
     }
 
-    public static Map<String, Integer> topAlbums(JSONArray array, int size) {
+    public static Map<String, Integer> topAlbumsByPlays(JSONArray array, int size) {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
@@ -156,6 +156,50 @@ public class DataService {
         }
         return map;
     }
+
+    public static Map<String, Integer> reasonStart(JSONArray array) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject entry = array.getJSONObject(i);
+            String reason = entry.optString("reason_start", null);
+            if (reason != null) {
+                map.put(reason, map.getOrDefault(reason, 0) + 1);
+            }
+        }
+        return map;
+    }
+
+    public static Map<String, Integer> reasonSkipped(JSONArray array) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject entry = array.getJSONObject(i);
+            String reason_end = entry.optString("reason_end", null);
+            Boolean skipped = entry.optBoolean("skipped", false);
+            if (skipped) {
+                map.put(reason_end, map.getOrDefault(reason_end, 0) + 1);
+            }
+        }
+        return map;
+    }
+
+    public static Map<String, Integer> topArtistsByUniquePlays(JSONArray array, int size) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+        Set<String> seenTracks = new HashSet<>();
+
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject entry = array.getJSONObject(i);
+            String artist = entry.optString("master_metadata_album_artist_name", null);
+            String track = entry.optString("master_metadata_track_name", null);
+            if (artist != null && track != null && !seenTracks.contains(track)) {
+                seenTracks.add(track);
+                map.put(artist, map.getOrDefault(artist, 0) + 1);
+            }
+        }
+        sortAndSizeMap(map, size);
+        return map;
+    }
+
 
 }
 
