@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class DataService {
@@ -28,10 +29,10 @@ public class DataService {
         JSONArray data = collectExtendedData();
 
 //        Map map = topTracksByPlays(data);
-        JSONArray tracks = singleArtistData(data, "jpegmafia");
+        JSONArray tracks = singleArtistData(data, "ween");
         Map<String, Integer> tracksMap = topTracksByPlays(tracks);
-        sortAndSizeMap(tracksMap, tracksMap.size());
-        prettyPrintMap(tracksMap);
+        Map<String, Integer> sorted = sortAndSizeMap(tracksMap, tracksMap.size());
+        prettyPrintMap(sorted);
 
     }
 
@@ -57,20 +58,20 @@ public class DataService {
         return res;
     }
 
-    public static Map<String, Integer> topSkippedTracks(JSONArray array, int size, int seconds) {
+    public static Map<String, Integer> totalSkippedTracks(JSONArray array, int seconds) {
         Map<String, Integer> map = new LinkedHashMap<>();
         seconds = seconds * 1000;
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            String artist = entry.optString("master_metadata_album_artist_name", null);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String artist = entry.getArtistName();
             if (artist != null) {
-                int msPlayed = entry.getInt("ms_played");
+                int msPlayed = entry.getMsPlayed();
                 if(msPlayed <= seconds) {
                     map.put(artist, map.getOrDefault(artist, 0) + 1);
             }
             }
         }
-        sortAndSizeMap(map, size);
         return map;
     }
 
@@ -91,17 +92,16 @@ public class DataService {
         return map;
     }
 
-    public static void sortAndSizeMap(Map<String, Integer> map, int size) {
-        Map<String, Integer> limitedMap = map.entrySet().stream()
-                .sorted((a, b) -> b.getValue().compareTo(a.getValue())) // sort descending
+    public static Map<String, Integer> sortAndSizeMap(Map<String, Integer> map, int size) {
+        return map.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .limit(size)
-                .collect(
-                        LinkedHashMap::new,
-                        (m, e) -> m.put(e.getKey(), e.getValue()),
-                        LinkedHashMap::putAll
-                );
-        map.clear();
-        map.putAll(limitedMap);
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
     }
 
     public static void prettyPrintMap(Map<String, Integer> map) {
@@ -218,7 +218,7 @@ public class DataService {
             SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
             String entryTrack = entry.getTrackName();
             if (entryTrack != null && entryTrack.equalsIgnoreCase(track)) {
-                res.put(entry);
+                res.put(obj);
             }
         }
         return res;
@@ -232,7 +232,7 @@ public class DataService {
             SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
             String entryAlbum = entry.getAlbumName();
             if (entryAlbum != null && entryAlbum.equalsIgnoreCase(album)) {
-                res.put(entry);
+                res.put(obj);
             }
         }
         return res;
