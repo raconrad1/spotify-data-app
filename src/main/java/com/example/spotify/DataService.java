@@ -5,6 +5,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import com.example.spotify.model.SpotifyPlaybackEntry;
+import com.example.spotify.util.SpotifyParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,10 +78,12 @@ public class DataService {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            String artist = entry.optString("master_metadata_album_artist_name", null);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+
+            String artist = entry.getArtistName();
             if (artist != null) {
-                int msPlayed = entry.getInt("ms_played");
+                int msPlayed = entry.getMsPlayed();
                 int minutes = msPlayed / 60000;
                 map.put(artist, map.containsKey(artist) ? map.get(artist) + minutes : minutes);
             }
@@ -108,8 +112,9 @@ public class DataService {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            String track = entry.optString("master_metadata_track_name", null);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String track = entry.getTrackName();
             if (track != null) {
                 map.put(track, map.containsKey(track) ? map.get(track) + 1 : 1);
             }
@@ -121,8 +126,9 @@ public class DataService {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            String artist = entry.optString("master_metadata_album_artist_name", null);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String artist = entry.getArtistName();
             if (artist != null) {
                 map.put(artist, map.containsKey(artist) ? map.get(artist) + 1 : 1);
             }
@@ -134,8 +140,9 @@ public class DataService {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            String album = entry.optString("master_metadata_album_album_name", null);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String album = entry.getAlbumName();
             if (album != null) {
                 map.put(album, map.containsKey(album) ? map.get(album) + 1 : 1);
             }
@@ -147,9 +154,10 @@ public class DataService {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            boolean skipped = entry.optBoolean("skipped", false);
-            String track = entry.optString("master_metadata_track_name", null);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            boolean skipped = entry.isSkipped();
+            String track = entry.getTrackName();
             if (skipped && track != null) {
                 map.put(track, map.getOrDefault(track, 0) + 1);
             }
@@ -161,8 +169,9 @@ public class DataService {
         Map<String, Integer> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            String reason = entry.optString("reason_start", null);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String reason = entry.getReasonStart();
             if (reason != null) {
                 map.put(reason, map.getOrDefault(reason, 0) + 1);
             }
@@ -173,9 +182,10 @@ public class DataService {
     public static Map<String, Integer> reasonSkipped(JSONArray array) {
         Map<String, Integer> map = new LinkedHashMap<>();
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            String reason_end = entry.optString("reason_end", null);
-            Boolean skipped = entry.optBoolean("skipped", false);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String reason_end = entry.getReasonEnd();
+            Boolean skipped = entry.isSkipped();
             if (skipped) {
                 map.put(reason_end, map.getOrDefault(reason_end, 0) + 1);
             }
@@ -188,9 +198,10 @@ public class DataService {
         Set<String> seenTracks = new HashSet<>();
 
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            String artist = entry.optString("master_metadata_album_artist_name", null);
-            String track = entry.optString("master_metadata_track_name", null);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String artist = entry.getArtistName();
+            String track = entry.getTrackName();
             if (artist != null && track != null && !seenTracks.contains(track)) {
                 seenTracks.add(track);
                 map.put(artist, map.getOrDefault(artist, 0) + 1);
@@ -203,8 +214,9 @@ public class DataService {
         JSONArray res = new JSONArray();
 
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            String entryTrack = entry.optString("master_metadata_track_name", null);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String entryTrack = entry.getTrackName();
             if (entryTrack != null && entryTrack.equalsIgnoreCase(track)) {
                 res.put(entry);
             }
@@ -216,8 +228,9 @@ public class DataService {
         JSONArray res = new JSONArray();
 
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            String entryAlbum = entry.optString("master_metadata_album_album_name", null);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String entryAlbum = entry.getAlbumName();
             if (entryAlbum != null && entryAlbum.equalsIgnoreCase(album)) {
                 res.put(entry);
             }
@@ -229,10 +242,11 @@ public class DataService {
         JSONArray res = new JSONArray();
 
         for (int i = 0; i < array.length(); i++) {
-            JSONObject entry = array.getJSONObject(i);
-            String entryArtist = entry.optString("master_metadata_album_artist_name", null);
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String entryArtist = entry.getArtistName();
             if (entryArtist != null && entryArtist.equalsIgnoreCase(artist)) {
-                res.put(entry);
+                res.put(obj);
             }
         }
         return res;
