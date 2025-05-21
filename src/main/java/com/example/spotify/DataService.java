@@ -257,7 +257,8 @@ public class DataService {
     public List<String> getTopTrackNames() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> tracksMap = topTracksByPlays(data);
-        return new ArrayList<>(tracksMap.keySet());
+        Map<String, Integer> tracksMapSorted = sortAndSizeMap(tracksMap, 20);
+        return new ArrayList<>(tracksMapSorted.keySet());
     }
 
 
