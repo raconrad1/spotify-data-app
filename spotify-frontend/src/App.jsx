@@ -3,25 +3,34 @@ import axios from 'axios'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
-    const [data, setData] = useState(null)
+    const [topTracksData, setTopTracksData] = useState(null)
     useEffect(() => {
-        axios.get('/api/top-artists')
-            .then(res => setData(res.data))
+        axios.get('/api/top-tracks')
+            .then(res => setTopTracksData(res.data))
             .catch(err => console.error(err))
     }, [])
+
+    const [topAlbumsData, setTopAlbumsData] = useState(null)
+    useEffect(() => {
+        axios.get('/api/top-albums')
+            .then(res => setTopAlbumsData(res.data))
+            .catch(err => console.error(err))
+    }, []);
+
   return (
     <>
       <h1>Spotify App Data</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-      </div>
-        {data ? (
-            <pre>{JSON.stringify(data, null, 2)}</pre>
+        <h2>------- Top tracks -------</h2>
+        {topTracksData ? (
+            <pre>{JSON.stringify(topTracksData, null, 2)}</pre>
         ) : (
-        <p>Loading...</p>
+        <p>Loading tracks...</p>
+        )}
+        <h2>------- Top Albums -------</h2>
+        {topAlbumsData ? (
+            <pre>{JSON.stringify(topAlbumsData, null, 2)}</pre>
+        ) : (
+            <p>Loading albums...</p>
         )}
     </>
   )
