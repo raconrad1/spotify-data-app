@@ -28,14 +28,6 @@ public class DataService {
 
     @PostConstruct
     public void init() {
-//        JSONArray data = collectExtendedData();
-//
-//        Map map = topTracksByPlays(data);
-//        JSONArray tracks = singleArtistData(data, "ween");
-//        Map<String, Integer> tracksMap = topTracksByPlays(tracks);
-//        Map<String, Integer> sorted = sortAndSizeMap(tracksMap, tracksMap.size());
-//        prettyPrintMap(sorted);
-
     }
 
     private JSONArray collectExtendedData() {
@@ -261,6 +253,12 @@ public class DataService {
         return new ArrayList<>(tracksMapSorted.keySet());
     }
 
+    public List<String> getTopArtistsNames() {
+        JSONArray data = collectExtendedData();
+        Map<String, Integer> artistsMap = topArtistsByPlays(data);
+        Map<String, Integer> artistsMapSorted = sortAndSizeMap(artistsMap, 20);
+        return new ArrayList<>(artistsMapSorted.keySet());
+    }
 
 }
 

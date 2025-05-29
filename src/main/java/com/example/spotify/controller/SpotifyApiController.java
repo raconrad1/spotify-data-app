@@ -21,6 +21,11 @@ public class SpotifyApiController {
 
     @GetMapping("/top-tracks")
     public List<String> getTopTracks() {
-        return dataService.getTopTrackNames(); // Add this method to DataService
+        return dataService.getTopTrackNames();
+    }
+
+    @GetMapping("/top-artists")
+    public List<String> getTopArtists() {
+        return dataService.getTopArtistsNames();
     }
 }
