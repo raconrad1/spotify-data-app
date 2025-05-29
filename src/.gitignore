@@ -18,3 +18,4 @@ pom.xml
 *.iml
 /target/
 /out/
+/build-and-deploy.sh
