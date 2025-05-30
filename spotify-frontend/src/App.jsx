@@ -11,19 +11,30 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData }) {
         setValue(newValue);
     };
     const topTracksContent = topTracksData ? (
-        <pre>{JSON.stringify(topTracksData, null, 2)}</pre>
-    ) : (
+        <ul>
+            {Object.entries(topTracksData).map(([track, count]) => (
+                <li key={track}>{track}: {count} plays</li>
+            ))}
+        </ul>    ) : (
         <p>Loading tracks...</p>
     );
 
     const topArtistContent = topArtistData ? (
-        <pre>{JSON.stringify(topArtistData, null, 2)}</pre>
+        <ul>
+            {Object.entries(topArtistData).map(([artist, count]) => (
+              <li key={artist}>{artist}: {count} plays</li>
+            ))}
+        </ul>
     ) : (
         <p>Loading artists...</p>
     );
 
     const topAlbumsContent = topAlbumsData ? (
-        <pre>{JSON.stringify(topAlbumsData, null, 2)}</pre>
+        <ul>
+            {Object.entries(topAlbumsData).map(([album, count]) => (
+                <li key={album}>{album}: {count} plays</li>
+            ))}
+        </ul>
     ) : (
         <p>Loading albums...</p>
     );

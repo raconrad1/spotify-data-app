@@ -247,18 +247,18 @@ public class DataService {
         return res;
     }
 
-    public List<String> getTopTrackNames() {
+    public Map<String, Integer> getTopTrackNames() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> tracksMap = topTracksByPlays(data);
         Map<String, Integer> tracksMapSorted = sortAndSizeMap(tracksMap, 20);
-        return new ArrayList<>(tracksMapSorted.keySet());
+        return tracksMapSorted;
     }
 
-    public List<String> getTopArtistsNames() {
+    public Map<String, Integer> getTopArtistsNames() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> artistsMap = topArtistsByPlays(data);
         Map<String, Integer> artistsMapSorted = sortAndSizeMap(artistsMap, 20);
-        return new ArrayList<>(artistsMapSorted.keySet());
+        return artistsMapSorted;
     }
 
     public Map<String, Integer> getTopAlbumsMap() {

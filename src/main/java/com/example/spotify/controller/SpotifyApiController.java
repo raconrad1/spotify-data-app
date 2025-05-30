@@ -21,12 +21,12 @@ public class SpotifyApiController {
     }
 
     @GetMapping("/top-tracks")
-    public List<String> getTopTracks() {
+    public Map<String, Integer> getTopTracks() {
         return dataService.getTopTrackNames();
     }
 
     @GetMapping("/top-artists")
-    public List<String> getTopArtists() {
+    public Map<String, Integer> getTopArtists() {
         return dataService.getTopArtistsNames();
     }
 
