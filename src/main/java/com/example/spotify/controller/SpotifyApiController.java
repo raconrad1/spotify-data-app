@@ -34,4 +34,9 @@ public class SpotifyApiController {
     public Map<String, Integer> getTopAlbums() {
         return dataService.getTopAlbumsMap();
     }
+
+    @GetMapping("/top-skipped-tracks")
+    public Map<String, Integer> getTopSkippedTracks() {
+        return dataService.getTopSkippedTracks();
+    }
 }

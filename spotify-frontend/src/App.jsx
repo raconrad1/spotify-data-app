@@ -4,7 +4,7 @@ import './App.css'
 import { Box, Tabs, Tab } from '@mui/material'
 import { TabContext, TabPanel } from '@mui/lab'
 
-function DataTabs({ topTracksData, topArtistData, topAlbumsData }) {
+function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTracksData }) {
     const [value, setValue] = useState('1');
 
     const handleChange = (event, newValue) => {
@@ -39,6 +39,16 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData }) {
         <p>Loading albums...</p>
     );
 
+    const topSkippedContent = topSkippedTracksData ? (
+        <ul>
+            {Object.entries(topSkippedTracksData).map(([track, skips]) => (
+                <li key={track}>{track}: {skips} skips</li>
+            ))}
+        </ul>
+    ) : (
+        <p>Loading skipped tracks...</p>
+    );
+
     return (
         <Box sx={{ width: '100%' }}>
             <TabContext value={value}>
@@ -51,10 +61,12 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData }) {
                 <Tab value="1" label="Top Tracks" />
                 <Tab value="2" label="Top Artists" />
                 <Tab value="3" label="Top Albums" />
+                <Tab value="4" label="Top Skipped Tracks" />
             </Tabs>
             <TabPanel value="1">{topTracksContent}</TabPanel>
             <TabPanel value="2">{topArtistContent}</TabPanel>
             <TabPanel value="3">{topAlbumsContent}</TabPanel>
+            <TabPanel value="4">{topSkippedContent}</TabPanel>
             </TabContext>
         </Box>
     );
@@ -82,6 +94,13 @@ export default function App() {
             .catch(err => console.error(err))
     }, []);
 
+    const [topSkippedTracksData, setTopSkippedTracksData] = useState(null)
+    useEffect(() => {
+        axios.get('/api/top-skipped-tracks')
+            .then(res => setTopSkippedTracksData(res.data))
+            .catch(err => console.error(err))
+    }, []);
+
   return (
       <>
           <h1>Your Extended Spotify Streaming History</h1>
@@ -89,6 +108,7 @@ export default function App() {
               topTracksData={topTracksData}
               topArtistData={topArtistData}
               topAlbumsData={topAlbumsData}
+              topSkippedTracksData={topSkippedTracksData}
           />
       </>
   )

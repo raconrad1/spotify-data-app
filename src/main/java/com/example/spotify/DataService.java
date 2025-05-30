@@ -268,7 +268,11 @@ public class DataService {
         return albumsMapSorted;
     }
 
+    public Map<String, Integer> getTopSkippedTracks() {
+        JSONArray data = collectExtendedData();
+        Map<String, Integer> skippedMap = skippedTracks(data);
+        Map<String, Integer> skippedMapSorted = sortAndSizeMap(skippedMap, 20);
+        return skippedMapSorted;
+    }
+
 }
-
-
-// mvn spring-boot:run from root directory to run
