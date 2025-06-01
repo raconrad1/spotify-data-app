@@ -247,6 +247,7 @@ public class DataService {
         return res;
     }
 
+//    Functions below are used in API Controller
     public Map<String, Integer> getTopTrackNames() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> tracksMap = topTracksByPlays(data);
@@ -273,6 +274,23 @@ public class DataService {
         Map<String, Integer> skippedMap = skippedTracks(data);
         Map<String, Integer> skippedMapSorted = sortAndSizeMap(skippedMap, 20);
         return skippedMapSorted;
+    }
+
+    public Integer getTotalEntries() {
+        JSONArray data = collectExtendedData();
+        return data.length();
+    }
+
+    public Integer getTotalUniqueEntries() {
+        JSONArray data = collectExtendedData();
+        Set<String> uniqueTracks = new HashSet<String>();
+        for (int i = 0; i < data.length(); i++) {
+            JSONObject obj = data.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String track = entry.getTrackName();
+            uniqueTracks.add(track);
+        }
+        return uniqueTracks.size();
     }
 
 }

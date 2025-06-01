@@ -39,4 +39,14 @@ public class SpotifyApiController {
     public Map<String, Integer> getTopSkippedTracks() {
         return dataService.getTopSkippedTracks();
     }
+
+    @GetMapping("/total-entries")
+    public Integer getTotalEntries() {
+        return dataService.getTotalEntries();
+    }
+
+    @GetMapping("/total-unique-entries")
+    public Integer getTotalUniqueEntries() {
+        return dataService.getTotalUniqueEntries();
+    }
 }

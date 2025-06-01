@@ -4,6 +4,32 @@ import './App.css'
 import { Box, Tabs, Tab } from '@mui/material'
 import { TabContext, TabPanel } from '@mui/lab'
 
+function addNumberCommas(value) {
+    const formattedValue = Number(value).toLocaleString('en-us');
+    return formattedValue;
+}
+
+function GeneralStats({ totalEntriesData, totalUniqueEntriesData }) {
+    const totalEntriesContent = totalEntriesData ? (
+        <p>Total tracks played: {addNumberCommas(totalEntriesData)}</p>
+    ) : (
+        <p>Loading total tracks played...</p>
+    )
+
+    const totalUniqueEntriesContent = totalUniqueEntriesData ? (
+        <p>Total unique tracks played: {addNumberCommas(totalUniqueEntriesData)}</p>
+    ) : (
+        <p>Loading total unique tracks played...</p>
+    )
+
+    return (
+        <div>
+            {totalEntriesContent}
+            {totalUniqueEntriesContent}
+        </div>
+    )
+}
+
 function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTracksData }) {
     const [value, setValue] = useState('1');
 
@@ -13,7 +39,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
     const topTracksContent = topTracksData ? (
         <ul>
             {Object.entries(topTracksData).map(([track, count]) => (
-                <li key={track}>{track}: {count} plays</li>
+                <li key={track}>{track}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>    ) : (
         <p>Loading tracks...</p>
@@ -22,7 +48,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
     const topArtistContent = topArtistData ? (
         <ul>
             {Object.entries(topArtistData).map(([artist, count]) => (
-              <li key={artist}>{artist}: {count} plays</li>
+              <li key={artist}>{artist}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>
     ) : (
@@ -32,7 +58,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
     const topAlbumsContent = topAlbumsData ? (
         <ul>
             {Object.entries(topAlbumsData).map(([album, count]) => (
-                <li key={album}>{album}: {count} plays</li>
+                <li key={album}>{album}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>
     ) : (
@@ -42,7 +68,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
     const topSkippedContent = topSkippedTracksData ? (
         <ul>
             {Object.entries(topSkippedTracksData).map(([track, skips]) => (
-                <li key={track}>{track}: {skips} skips</li>
+                <li key={track}>{track}: {addNumberCommas(skips)} skips</li>
             ))}
         </ul>
     ) : (
@@ -101,9 +127,27 @@ export default function App() {
             .catch(err => console.error(err))
     }, []);
 
-  return (
+    const [totalEntriesData, setTotalEntriesData] = useState(null);
+    const [totalUniqueEntriesData, setTotalUniqueEntriesData] = useState(null);
+    useEffect(() => {
+        axios.get('/api/total-entries')
+            .then(res => setTotalEntriesData(res.data))
+            .catch(err => console.error(err));
+
+        axios.get('/api/total-unique-entries')
+            .then(res => setTotalUniqueEntriesData(res.data))
+            .catch(err => console.error(err));
+    }, []);
+
+    return (
       <>
           <h1>Your Extended Spotify Streaming History</h1>
+          <h2>General stats</h2>
+          <GeneralStats
+              totalEntriesData={totalEntriesData}
+              totalUniqueEntriesData={totalUniqueEntriesData}
+          />
+          <br/>
           <DataTabs
               topTracksData={topTracksData}
               topArtistData={topArtistData}
