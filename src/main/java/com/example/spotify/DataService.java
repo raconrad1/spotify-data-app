@@ -293,4 +293,11 @@ public class DataService {
         return uniqueTracks.size();
     }
 
+    public Map<String, Integer> getTopArtistsByUniquePlays() {
+        JSONArray data = collectExtendedData();
+        Map<String, Integer> uniqueArtistMap = topArtistsByUniquePlays(data);
+        Map<String, Integer> uniqueArtistMapSorted = sortAndSizeMap(uniqueArtistMap, 20);
+        return uniqueArtistMapSorted;
+    }
+
 }

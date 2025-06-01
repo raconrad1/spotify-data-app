@@ -30,7 +30,7 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData }) {
     )
 }
 
-function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTracksData }) {
+function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTracksData, topArtistsUniquePlaysData }) {
     const [value, setValue] = useState('1');
 
     const handleChange = (event, newValue) => {
@@ -49,6 +49,16 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
         <ul>
             {Object.entries(topArtistData).map(([artist, count]) => (
               <li key={artist}>{artist}: {addNumberCommas(count)} plays</li>
+            ))}
+        </ul>
+    ) : (
+        <p>Loading artists...</p>
+    );
+
+    const topArtistsUniquePlaysContent = topArtistsUniquePlaysData ? (
+        <ul>
+            {Object.entries(topArtistsUniquePlaysData).map(([artist, count]) => (
+                <li key={artist}>{artist}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>
     ) : (
@@ -86,13 +96,34 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             >
                 <Tab value="1" label="Top Tracks" />
                 <Tab value="2" label="Top Artists" />
-                <Tab value="3" label="Top Albums" />
-                <Tab value="4" label="Top Skipped Tracks" />
+                <Tab value="3" label="Top Artists (Unique Plays)" />
+                <Tab value="4" label="Top Albums" />
+                <Tab value="5" label="Top Skipped Tracks" />
             </Tabs>
-            <TabPanel value="1">{topTracksContent}</TabPanel>
-            <TabPanel value="2">{topArtistContent}</TabPanel>
-            <TabPanel value="3">{topAlbumsContent}</TabPanel>
-            <TabPanel value="4">{topSkippedContent}</TabPanel>
+            <TabPanel value="1">
+                These are your top tracks of all time, and how many times they've been played
+                {topTracksContent}
+            </TabPanel>
+
+            <TabPanel value="2">
+                Here are the artists you've listened to the most, and how many times you played a song of theirs
+                {topArtistContent}
+            </TabPanel>
+
+            <TabPanel value="3">
+                Here are your top artists again, but only including unique songs. This is to show the variety of songs that you've heard from a given artist
+                {topArtistsUniquePlaysContent}
+            </TabPanel>
+
+            <TabPanel value="4">
+                These are the albums you've listened to the most, or maybe the songs from this artist that you've listen to the most are on this album
+                {topAlbumsContent}
+            </TabPanel>
+
+            <TabPanel value="5">
+                These are the songs on your playlists that you hate the most... or you've just skipped them the most... is there a correlation there?
+                {topSkippedContent}
+            </TabPanel>
             </TabContext>
         </Box>
     );
@@ -110,6 +141,13 @@ export default function App() {
     useEffect(() => {
         axios.get('/api/top-artists')
             .then(res => setTopArtistData(res.data))
+            .catch(err => console.error(err))
+    }, []);
+
+    const [topArtistsUniquePlaysData, setTopArtistsUniquePlaysData] = useState(null)
+    useEffect(() => {
+        axios.get('/api/top-artists-unique-plays')
+            .then(res => setTopArtistsUniquePlaysData(res.data))
             .catch(err => console.error(err))
     }, []);
 
@@ -151,6 +189,7 @@ export default function App() {
           <DataTabs
               topTracksData={topTracksData}
               topArtistData={topArtistData}
+              topArtistsUniquePlaysData={topArtistsUniquePlaysData}
               topAlbumsData={topAlbumsData}
               topSkippedTracksData={topSkippedTracksData}
           />

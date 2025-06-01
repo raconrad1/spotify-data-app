@@ -49,4 +49,9 @@ public class SpotifyApiController {
     public Integer getTotalUniqueEntries() {
         return dataService.getTotalUniqueEntries();
     }
+
+    @GetMapping("/top-artists-unique-plays")
+    public Map<String, Integer> getTopArtistsUniquePlays() {
+        return dataService.getTopArtistsByUniquePlays();
+    }
 }
