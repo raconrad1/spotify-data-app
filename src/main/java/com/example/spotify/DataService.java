@@ -251,28 +251,28 @@ public class DataService {
     public Map<String, Integer> getTopTrackNames() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> tracksMap = topTracksByPlays(data);
-        Map<String, Integer> tracksMapSorted = sortAndSizeMap(tracksMap, 20);
+        Map<String, Integer> tracksMapSorted = sortAndSizeMap(tracksMap, 50);
         return tracksMapSorted;
     }
 
     public Map<String, Integer> getTopArtistsNames() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> artistsMap = topArtistsByPlays(data);
-        Map<String, Integer> artistsMapSorted = sortAndSizeMap(artistsMap, 20);
+        Map<String, Integer> artistsMapSorted = sortAndSizeMap(artistsMap, 50);
         return artistsMapSorted;
     }
 
     public Map<String, Integer> getTopAlbumsMap() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> albumsMap = topAlbumsByPlays(data);
-        Map<String, Integer> albumsMapSorted = sortAndSizeMap(albumsMap, 20);
+        Map<String, Integer> albumsMapSorted = sortAndSizeMap(albumsMap, 50);
         return albumsMapSorted;
     }
 
     public Map<String, Integer> getTopSkippedTracks() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> skippedMap = skippedTracks(data);
-        Map<String, Integer> skippedMapSorted = sortAndSizeMap(skippedMap, 20);
+        Map<String, Integer> skippedMapSorted = sortAndSizeMap(skippedMap, 50);
         return skippedMapSorted;
     }
 
@@ -296,7 +296,7 @@ public class DataService {
     public Map<String, Integer> getTopArtistsByUniquePlays() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> uniqueArtistMap = topArtistsByUniquePlays(data);
-        Map<String, Integer> uniqueArtistMapSorted = sortAndSizeMap(uniqueArtistMap, 20);
+        Map<String, Integer> uniqueArtistMapSorted = sortAndSizeMap(uniqueArtistMap, 50);
         return uniqueArtistMapSorted;
     }
 
