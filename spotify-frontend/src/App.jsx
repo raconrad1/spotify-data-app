@@ -9,7 +9,7 @@ function addNumberCommas(value) {
     return formattedValue;
 }
 
-function GeneralStats({ totalEntriesData, totalUniqueEntriesData }) {
+function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData }) {
     const totalEntriesContent = totalEntriesData ? (
         <p>Total tracks played: {addNumberCommas(totalEntriesData)}</p>
     ) : (
@@ -22,10 +22,17 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData }) {
         <p>Loading total unique tracks played...</p>
     )
 
+    const totalSkipsContent = totalSkipsData ? (
+        <p>Total tracks skipped: {addNumberCommas(totalSkipsData)}</p>
+    ) : (
+        <p>Loading total skips...</p>
+    )
+
     return (
         <div>
             {totalEntriesContent}
             {totalUniqueEntriesContent}
+            {totalSkipsContent}
         </div>
     )
 }
@@ -177,6 +184,13 @@ export default function App() {
             .catch(err => console.error(err));
     }, []);
 
+    const [totalSkipsData, setTotalSkipsData] = useState(null);
+    useEffect(() => {
+        axios.get('api/total-skipped-tracks')
+            .then(res => setTotalSkipsData(res.data))
+            .catch(err => console.error(err));
+    }, []);
+
     return (
       <>
           <h1>Your Extended Spotify Streaming History</h1>
@@ -184,6 +198,7 @@ export default function App() {
           <GeneralStats
               totalEntriesData={totalEntriesData}
               totalUniqueEntriesData={totalUniqueEntriesData}
+              totalSkipsData={totalSkipsData}
           />
           <br/>
           <DataTabs

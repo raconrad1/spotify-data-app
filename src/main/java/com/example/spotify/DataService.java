@@ -293,6 +293,13 @@ public class DataService {
         return uniqueTracks.size();
     }
 
+    public Integer getTotalTracksSkipped() {
+        JSONArray data = collectExtendedData();
+        Map<String, Integer> skippedMap = totalSkippedTracks(data, 5);
+        int res = skippedMap.values().stream().mapToInt(Integer::intValue).sum();
+        return res;
+    }
+
     public Map<String, Integer> getTopArtistsByUniquePlays() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> uniqueArtistMap = topArtistsByUniquePlays(data);

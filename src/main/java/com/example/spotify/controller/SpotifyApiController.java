@@ -54,4 +54,9 @@ public class SpotifyApiController {
     public Map<String, Integer> getTopArtistsUniquePlays() {
         return dataService.getTopArtistsByUniquePlays();
     }
+
+    @GetMapping("/total-skipped-tracks")
+    public Integer getTotalSkippedTracks() {
+        return dataService.getTotalTracksSkipped();
+    }
 }
