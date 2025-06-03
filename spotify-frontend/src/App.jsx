@@ -45,7 +45,9 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
     };
     const topTracksContent = topTracksData ? (
         <ul>
-            {Object.entries(topTracksData).map(([track, count]) => (
+            {Object.entries(topTracksData)
+                .sort((a, b) => b[1] - a[1])
+                .map(([track, count]) => (
                 <li key={track}>{track}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>    ) : (
