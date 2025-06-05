@@ -102,6 +102,17 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
                 onChange={handleChange}
                 textColor="secondary"
                 indicatorColor="secondary"
+                centered
+                sx={{
+                    mb: 2,
+                    '& .MuiTab-root': {
+                        minWidth: '120px',
+                        padding: '12px 16px',
+                    },
+                    '& .MuiTabs-flexContainer': {
+                        justifyContent: 'center',
+                    },
+                }}
             >
                 <Tab value="1" label="Top Tracks" />
                 <Tab value="2" label="Top Artists" />
