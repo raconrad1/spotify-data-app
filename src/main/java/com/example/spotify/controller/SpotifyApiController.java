@@ -59,4 +59,9 @@ public class SpotifyApiController {
     public Integer getTotalSkippedTracks() {
         return dataService.getTotalTracksSkipped();
     }
+
+    @GetMapping("/total-time-listened")
+    public Map<String, Integer> getTotalTimeListened() {
+        return dataService.getTotalTimeListened();
+    }
 }

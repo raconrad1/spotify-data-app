@@ -29,6 +29,7 @@ public class DataService {
     @PostConstruct
     public void init() {
         JSONArray data = collectExtendedData();
+
     }
 
     private JSONArray collectExtendedData() {
@@ -83,6 +84,27 @@ public class DataService {
                 int minutes = msPlayed / 60000;
                 map.put(artist, map.containsKey(artist) ? map.get(artist) + minutes : minutes);
             }
+        }
+        return map;
+    }
+
+    public static Map<String, Integer> totalTimeListened(JSONArray array) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+        int ms = 0;
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String track = entry.getTrackName();
+            if (track != null) {
+                int msPlayed = entry.getMsPlayed();
+                ms += msPlayed;
+            }
+            int minutes = ms / 1000;
+            int hours = minutes / 60;
+            int days = hours / 24;
+            map.put("minutes", minutes);
+            map.put("hours", hours);
+            map.put("days", days);
         }
         return map;
     }
@@ -305,6 +327,11 @@ public class DataService {
         Map<String, Integer> uniqueArtistMap = topArtistsByUniquePlays(data);
         Map<String, Integer> uniqueArtistMapSorted = sortAndSizeMap(uniqueArtistMap, 50);
         return uniqueArtistMapSorted;
+    }
+
+    public Map<String, Integer> getTotalTimeListened() {
+        JSONArray data = collectExtendedData();
+        return totalTimeListened(data);
     }
 
 }
