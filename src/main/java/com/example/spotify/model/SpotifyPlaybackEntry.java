@@ -16,6 +16,8 @@ public class SpotifyPlaybackEntry {
     private boolean skipped;
     private boolean offline;
     private boolean incognitoMode;
+    private String podcastName;
+    private String podcastEpisodeName;
 
     // Getters and Setters
 
@@ -63,4 +65,11 @@ public class SpotifyPlaybackEntry {
 
     public boolean isIncognitoMode() { return incognitoMode; }
     public void setIncognitoMode(boolean incognitoMode) { this.incognitoMode = incognitoMode; }
+
+    public String getPodcastName() { return podcastName; }
+    public void setPodcastName(String podcastName) { this.podcastName = podcastName; }
+
+    public String getPodcastEpisodeName() { return podcastEpisodeName; }
+    public void setPodcastEpisodeName(String podcastEpisodeName) { this.podcastEpisodeName = podcastEpisodeName; }
+
 }

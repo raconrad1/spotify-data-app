@@ -23,7 +23,8 @@ public class SpotifyParser {
         entry.setSkipped(json.optBoolean("skipped", false));
         entry.setOffline(json.optBoolean("offline", false));
         entry.setIncognitoMode(json.optBoolean("incognito_mode", false));
-
+        entry.setPodcastName(json.optString("episode_show_name", null));
+        entry.setPodcastEpisodeName(json.optString("episode_name", null));
         return entry;
     }
 }
