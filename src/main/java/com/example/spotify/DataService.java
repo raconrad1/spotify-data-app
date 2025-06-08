@@ -17,8 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.List;
-import java.util.ArrayList;
 
 @Component
 public class DataService {
@@ -269,7 +267,26 @@ public class DataService {
         return res;
     }
 
-//    Functions below are used in API Controller
+    public static Integer percentageTimeShuffled(JSONArray array) {
+        int tracksOnShuffle = 0;
+        int totalTracks = array.length();
+
+        for (int i = 0; i < totalTracks; i++) {
+            JSONObject obj = array.getJSONObject(i); // use 'i', not '0'
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            if (entry.isShuffle()) {
+                tracksOnShuffle++;
+            }
+        }
+
+        if (totalTracks == 0) return 0;
+
+        double percentage = ((double) tracksOnShuffle / totalTracks) * 100;
+        return (int) Math.round(percentage);
+    }
+
+
+    //    Functions below are used in API Controller
     public Map<String, Integer> getTopTrackNames() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> tracksMap = topTracksByPlays(data);
@@ -332,6 +349,11 @@ public class DataService {
     public Map<String, Integer> getTotalTimeListened() {
         JSONArray data = collectExtendedData();
         return totalTimeListened(data);
+    }
+
+    public Integer getPercentageTimeShuffled() {
+        JSONArray data = collectExtendedData();
+        return percentageTimeShuffled(data);
     }
 
 }

@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -63,5 +62,10 @@ public class SpotifyApiController {
     @GetMapping("/total-time-listened")
     public Map<String, Integer> getTotalTimeListened() {
         return dataService.getTotalTimeListened();
+    }
+
+    @GetMapping("/percentage-time-shuffled")
+    public Integer getPercentageTimeShuffled() {
+        return dataService.getPercentageTimeShuffled();
     }
 }
