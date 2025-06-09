@@ -304,7 +304,7 @@ public class DataService {
                 ms += msPlayed;
             }
         }
-        int minutes = ms / 1000;
+        int minutes = ms / 60000;
         int hours = minutes / 60;
         int days = hours / 24;
         map.put("minutes", minutes);

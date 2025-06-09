@@ -9,7 +9,7 @@ function addNumberCommas(value) {
     return formattedValue;
 }
 
-function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData }) {
+function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData, shufflePercentData }) {
     const totalEntriesContent = totalEntriesData ? (
         <p>Total tracks played: {addNumberCommas(totalEntriesData)}</p>
     ) : (
@@ -40,6 +40,12 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
         <p>Loading total time listened to podcasts...</p>
     )
 
+    const shufflePercentContent = shufflePercentData ? (
+        <p>You have listened to music on shuffle {shufflePercentData}% of the time.</p>
+    ) : (
+        <p>Loading shuffle percent...</p>
+    )
+
     return (
         <div>
             {totalEntriesContent}
@@ -47,6 +53,7 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
             {totalSkipsContent}
             {totalMusicTimeContent}
             {totalPodcastTimeContent}
+            {shufflePercentContent}
         </div>
     )
 }
@@ -232,6 +239,13 @@ export default function App() {
             .catch(err => console.error(err));
     }, []);
 
+    const [shufflePercentData, setShufflePercentData] = useState(null);
+    useEffect(() => {
+        axios.get('/api/percentage-time-shuffled')
+            .then(res => setShufflePercentData(res.data))
+            .catch(err => console.error(err));
+    }, []);
+
     return (
       <>
           <h1>Your Extended Spotify Streaming History</h1>
@@ -242,6 +256,7 @@ export default function App() {
               totalSkipsData={totalSkipsData}
               totalMusicTimeData={totalMusicTimeData}
               totalPodcastTimeData={totalPodcastTimeData}
+              shufflePercentData={shufflePercentData}
           />
           <br/>
           <DataTabs
