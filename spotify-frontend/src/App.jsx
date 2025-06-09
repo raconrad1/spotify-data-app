@@ -75,8 +75,8 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
         <ul>
             {Object.entries(topTracksData)
                 .sort((a, b) => b[1] - a[1])
-                .map(([track, count]) => (
-                <li key={track}>{track}: {addNumberCommas(count)} plays</li>
+                .map(([track, count], index) => (
+                <li key={track}>{index + 1}. {track}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>    ) : (
         <p>Loading tracks...</p>
@@ -84,8 +84,8 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
 
     const topArtistContent = topArtistData ? (
         <ul>
-            {Object.entries(topArtistData).map(([artist, count]) => (
-              <li key={artist}>{artist}: {addNumberCommas(count)} plays</li>
+            {Object.entries(topArtistData).map(([artist, count], index) => (
+              <li key={artist}>{index + 1}. {artist}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>
     ) : (
@@ -94,8 +94,8 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
 
     const topArtistsUniquePlaysContent = topArtistsUniquePlaysData ? (
         <ul>
-            {Object.entries(topArtistsUniquePlaysData).map(([artist, count]) => (
-                <li key={artist}>{artist}: {addNumberCommas(count)} plays</li>
+            {Object.entries(topArtistsUniquePlaysData).map(([artist, count], index) => (
+                <li key={artist}>{index + 1}. {artist}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>
     ) : (
@@ -104,8 +104,8 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
 
     const topAlbumsContent = topAlbumsData ? (
         <ul>
-            {Object.entries(topAlbumsData).map(([album, count]) => (
-                <li key={album}>{album}: {addNumberCommas(count)} plays</li>
+            {Object.entries(topAlbumsData).map(([album, count], index) => (
+                <li key={album}>{index + 1}. {album}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>
     ) : (
@@ -114,8 +114,8 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
 
     const topSkippedContent = topSkippedTracksData ? (
         <ul>
-            {Object.entries(topSkippedTracksData).map(([track, skips]) => (
-                <li key={track}>{track}: {addNumberCommas(skips)} skips</li>
+            {Object.entries(topSkippedTracksData).map(([track, skips], index) => (
+                <li key={track}>{index + 1}. {track}: {addNumberCommas(skips)} skips</li>
             ))}
         </ul>
     ) : (
@@ -124,8 +124,8 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
 
     const topPodcastsContent = topPodcastsData ? (
         <ul>
-            {Object.entries(topPodcastsData).map(([podcast, plays]) => (
-                <li key={podcast}>{podcast}: {addNumberCommas(plays)} plays</li>
+            {Object.entries(topPodcastsData).map(([podcast, plays], index) => (
+                <li key={podcast}>{index + 1}. {podcast}: {addNumberCommas(plays)} plays</li>
             ))}
         </ul>
     ) : (

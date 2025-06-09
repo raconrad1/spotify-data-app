@@ -231,7 +231,7 @@ public class DataService {
         return map;
     }
 
-    public static JSONArray singleTrackData(JSONArray array, String track) {
+    public static JSONArray singleSongData(JSONArray array, String track) {
         JSONArray res = new JSONArray();
 
         for (int i = 0; i < array.length(); i++) {
