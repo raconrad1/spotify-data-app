@@ -421,7 +421,6 @@ public class DataService {
     }
 
     public Map<String, Integer> getTopArtistsByUniquePlays() {
-        JSONArray data = collectExtendedData();
         Map<String, Integer> uniqueArtistMap = topArtistsByUniquePlays(this.cachedData);
         return sortAndSizeMap(uniqueArtistMap, 50);
     }
