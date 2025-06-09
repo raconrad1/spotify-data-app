@@ -25,10 +25,11 @@ public class DataService {
     @Value("${extended.streaming.history.path}")
     private String folderPath;
 
+    private JSONArray cachedData;
+
     @PostConstruct
     public void init() {
-        JSONArray data = collectExtendedData();
-
+        this.cachedData = collectExtendedData();
     }
 
     private JSONArray collectExtendedData() {
@@ -353,51 +354,40 @@ public class DataService {
 
 //    Tabs
     public Map<String, Integer> getTopTrackNames() {
-        JSONArray data = collectExtendedData();
-        Map<String, Integer> tracksMap = topTracksByPlays(data);
-        Map<String, Integer> tracksMapSorted = sortAndSizeMap(tracksMap, 50);
-        return tracksMapSorted;
+        Map<String, Integer> tracksMap = topTracksByPlays(this.cachedData);
+        return sortAndSizeMap(tracksMap, 50);
     }
 
     public Map<String, Integer> getTopArtistsNames() {
-        JSONArray data = collectExtendedData();
-        Map<String, Integer> artistsMap = topArtistsByPlays(data);
-        Map<String, Integer> artistsMapSorted = sortAndSizeMap(artistsMap, 50);
-        return artistsMapSorted;
+        Map<String, Integer> artistsMap = topArtistsByPlays(this.cachedData);
+        return sortAndSizeMap(artistsMap, 50);
     }
 
     public Map<String, Integer> getTopAlbumsMap() {
-        JSONArray data = collectExtendedData();
-        Map<String, Integer> albumsMap = topAlbumsByPlays(data);
-        Map<String, Integer> albumsMapSorted = sortAndSizeMap(albumsMap, 50);
-        return albumsMapSorted;
+        Map<String, Integer> albumsMap = topAlbumsByPlays(this.cachedData);
+        return sortAndSizeMap(albumsMap, 50);
     }
 
     public Map<String, Integer> getTopSkippedTracks() {
-        JSONArray data = collectExtendedData();
-        Map<String, Integer> skippedMap = skippedTracks(data);
+        Map<String, Integer> skippedMap = skippedTracks(this.cachedData);
         Map<String, Integer> skippedMapSorted = sortAndSizeMap(skippedMap, 50);
         return skippedMapSorted;
     }
 
     public Map<String, Integer> getTopPodcasts() {
-        JSONArray data = collectExtendedData();
-        Map<String, Integer> podcastMap = topPodcastsByPlays(data);
-        Map<String, Integer> podcastMapSorted = sortAndSizeMap(podcastMap, 50);
-        return podcastMapSorted;
+        Map<String, Integer> podcastMap = topPodcastsByPlays(this.cachedData);
+        return sortAndSizeMap(podcastMap, 50);
     }
 
 //    General info
     public Integer getTotalEntries() {
-        JSONArray data = collectExtendedData();
-        return data.length();
+        return this.cachedData.length();
     }
 
     public Integer getTotalUniqueEntries() {
-        JSONArray data = collectExtendedData();
         Set<String> uniqueTracks = new HashSet<String>();
-        for (int i = 0; i < data.length(); i++) {
-            JSONObject obj = data.getJSONObject(i);
+        for (int i = 0; i < this.cachedData.length(); i++) {
+            JSONObject obj = this.cachedData.getJSONObject(i);
             SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
             String track = entry.getTrackName();
             uniqueTracks.add(track);
@@ -406,37 +396,31 @@ public class DataService {
     }
 
     public Integer getTotalTracksSkipped() {
-        JSONArray data = collectExtendedData();
-        Map<String, Integer> skippedMap = totalSkippedTracks(data, 5);
+        Map<String, Integer> skippedMap = totalSkippedTracks(this.cachedData, 5);
         int res = skippedMap.values().stream().mapToInt(Integer::intValue).sum();
         return res;
     }
 
     public Map<String, Integer> getTopArtistsByUniquePlays() {
         JSONArray data = collectExtendedData();
-        Map<String, Integer> uniqueArtistMap = topArtistsByUniquePlays(data);
-        Map<String, Integer> uniqueArtistMapSorted = sortAndSizeMap(uniqueArtistMap, 50);
-        return uniqueArtistMapSorted;
+        Map<String, Integer> uniqueArtistMap = topArtistsByUniquePlays(this.cachedData);
+        return sortAndSizeMap(uniqueArtistMap, 50);
     }
 
     public Map<String, Integer> getTotalMusicTime() {
-        JSONArray data = collectExtendedData();
-        return totalMusicTime(data);
+        return totalMusicTime(this.cachedData);
     }
 
     public Map<String, Integer> getTotalPodcastTime() {
-        JSONArray data = collectExtendedData();
-        return totalPodcastTime(data);
+        return totalPodcastTime(this.cachedData);
     }
 
     public Integer getPercentageTimeShuffled() {
-        JSONArray data = collectExtendedData();
-        return percentageTimeShuffled(data);
+        return percentageTimeShuffled(this.cachedData);
     }
 
     public String getFirstTrackEver() {
-        JSONArray data = collectExtendedData();
-        return firstTrackEver(data);
+        return firstTrackEver(this.cachedData);
     }
 
 }
