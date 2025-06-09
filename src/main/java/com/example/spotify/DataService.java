@@ -86,7 +86,7 @@ public class DataService {
         return map;
     }
 
-    public static Map<String, Integer> totalTimeListened(JSONArray array) {
+    public static Map<String, Integer> totalMusicTime(JSONArray array) {
         Map<String, Integer> map = new LinkedHashMap<>();
         int ms = 0;
         for (int i = 0; i < array.length(); i++) {
@@ -285,6 +285,28 @@ public class DataService {
         return (int) Math.round(percentage);
     }
 
+    public static Map<String, Integer> totalPodcastTime(JSONArray array) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+        int ms = 0;
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String podcast = entry.getPodcastName();
+            if (podcast != null) {
+                int msPlayed = entry.getMsPlayed();
+                ms += msPlayed;
+            }
+            int minutes = ms / 1000;
+            int hours = minutes / 60;
+            int days = hours / 24;
+            map.put("minutes", minutes);
+            map.put("hours", hours);
+            map.put("days", days);
+        }
+        return map;
+    }
+
+
 
     //    Functions below are used in API Controller
     public Map<String, Integer> getTopTrackNames() {
@@ -346,9 +368,14 @@ public class DataService {
         return uniqueArtistMapSorted;
     }
 
-    public Map<String, Integer> getTotalTimeListened() {
+    public Map<String, Integer> getTotalMusicTime() {
         JSONArray data = collectExtendedData();
-        return totalTimeListened(data);
+        return totalMusicTime(data);
+    }
+
+    public Map<String, Integer> getTotalPodcastTime() {
+        JSONArray data = collectExtendedData();
+        return totalPodcastTime(data);
     }
 
     public Integer getPercentageTimeShuffled() {

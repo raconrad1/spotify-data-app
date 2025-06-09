@@ -59,9 +59,14 @@ public class SpotifyApiController {
         return dataService.getTotalTracksSkipped();
     }
 
-    @GetMapping("/total-time-listened")
-    public Map<String, Integer> getTotalTimeListened() {
-        return dataService.getTotalTimeListened();
+    @GetMapping("/total-music-time")
+    public Map<String, Integer> getTotalMusicTime() {
+        return dataService.getTotalMusicTime();
+    }
+
+    @GetMapping("/total-podcast-time")
+    public Map<String, Integer> getTotalPodcastTime() {
+        return dataService.getTotalPodcastTime();
     }
 
     @GetMapping("/percentage-time-shuffled")
