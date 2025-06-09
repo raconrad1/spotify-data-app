@@ -12,10 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Map;
-import java.util.LinkedHashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -330,7 +327,7 @@ public class DataService {
     }
 
     public static Map<String, String> firstTrackEver(JSONArray array) {
-        Map <String, String> map = new LinkedHashMap<>();
+        Map <String, String> map = new HashMap<>();
         String firstTimeStamp = null;
         String firstTrack = null;
         String firstArtist = null;
@@ -367,7 +364,7 @@ public class DataService {
 
 
 
-    //    Functions below are used in API Controller
+    //    Functions below are used in SpotifyApiController.java
 
 //    Tabs
     public Map<String, Integer> getTopTrackNames() {
@@ -401,7 +398,7 @@ public class DataService {
         return sortAndSizeMap(podcastMap, 50);
     }
 
-//    General info
+//    General info section
     public Integer getTotalEntries() {
         return this.cachedData.length();
     }
