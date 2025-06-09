@@ -9,7 +9,7 @@ function addNumberCommas(value) {
     return formattedValue;
 }
 
-function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData }) {
+function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData }) {
     const totalEntriesContent = totalEntriesData ? (
         <p>Total tracks played: {addNumberCommas(totalEntriesData)}</p>
     ) : (
@@ -28,11 +28,25 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
         <p>Loading total skips...</p>
     )
 
+    const totalMusicTimeContent = totalMusicTimeData ? (
+        <p>You've listened to music for {addNumberCommas(totalMusicTimeData["minutes"])} minutes, which is {addNumberCommas(totalMusicTimeData["hours"])} hours, or {addNumberCommas(totalMusicTimeData["days"])} days.</p>
+    ) : (
+        <p>Loading total time listened to music...</p>
+    )
+
+    const totalPodcastTimeContent = totalPodcastTimeData ? (
+        <p>You've listened to podcasts for {addNumberCommas(totalPodcastTimeData["minutes"])} minutes, which is {addNumberCommas(totalPodcastTimeData["hours"])} hours, or {addNumberCommas(totalPodcastTimeData["days"])} days.</p>
+    ) : (
+        <p>Loading total time listened to podcasts...</p>
+    )
+
     return (
         <div>
             {totalEntriesContent}
             {totalUniqueEntriesContent}
             {totalSkipsContent}
+            {totalMusicTimeContent}
+            {totalPodcastTimeContent}
         </div>
     )
 }
@@ -199,8 +213,22 @@ export default function App() {
 
     const [totalSkipsData, setTotalSkipsData] = useState(null);
     useEffect(() => {
-        axios.get('api/total-skipped-tracks')
+        axios.get('/api/total-skipped-tracks')
             .then(res => setTotalSkipsData(res.data))
+            .catch(err => console.error(err));
+    }, []);
+
+    const [totalMusicTimeData, setTotalMusicTimeData] = useState(null);
+    useEffect(() => {
+        axios.get('/api/total-music-time')
+            .then(res => setTotalMusicTimeData(res.data))
+            .catch(err => console.error(err));
+    }, []);
+
+    const [totalPodcastTimeData, setTotalPodcastTimeData] = useState(null);
+    useEffect(() => {
+        axios.get('/api/total-podcast-time')
+            .then(res => setTotalPodcastTimeData(res.data))
             .catch(err => console.error(err));
     }, []);
 
@@ -212,6 +240,8 @@ export default function App() {
               totalEntriesData={totalEntriesData}
               totalUniqueEntriesData={totalUniqueEntriesData}
               totalSkipsData={totalSkipsData}
+              totalMusicTimeData={totalMusicTimeData}
+              totalPodcastTimeData={totalPodcastTimeData}
           />
           <br/>
           <DataTabs
