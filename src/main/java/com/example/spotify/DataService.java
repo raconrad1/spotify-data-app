@@ -99,13 +99,13 @@ public class DataService {
                 int msPlayed = entry.getMsPlayed();
                 ms += msPlayed;
             }
-            int minutes = ms / 1000;
-            int hours = minutes / 60;
-            int days = hours / 24;
-            map.put("minutes", minutes);
-            map.put("hours", hours);
-            map.put("days", days);
         }
+        int minutes = ms / 60000;
+        int hours = minutes / 60;
+        int days = hours / 24;
+        map.put("minutes", minutes);
+        map.put("hours", hours);
+        map.put("days", days);
         return map;
     }
 
@@ -298,13 +298,13 @@ public class DataService {
                 int msPlayed = entry.getMsPlayed();
                 ms += msPlayed;
             }
-            int minutes = ms / 1000;
-            int hours = minutes / 60;
-            int days = hours / 24;
-            map.put("minutes", minutes);
-            map.put("hours", hours);
-            map.put("days", days);
         }
+        int minutes = ms / 1000;
+        int hours = minutes / 60;
+        int days = hours / 24;
+        map.put("minutes", minutes);
+        map.put("hours", hours);
+        map.put("days", days);
         return map;
     }
 
