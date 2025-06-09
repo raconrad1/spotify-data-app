@@ -29,6 +29,11 @@ public class SpotifyApiController {
         return dataService.getTopArtistsNames();
     }
 
+    @GetMapping("/top-artists-by-time")
+    public Map<String, Integer> getTopArtistsByTime() {
+        return dataService.getTopArtistsNamesByTime();
+    }
+
     @GetMapping("/top-albums")
     public Map<String, Integer> getTopAlbums() {
         return dataService.getTopAlbumsMap();

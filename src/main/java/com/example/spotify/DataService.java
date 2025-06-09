@@ -72,7 +72,7 @@ public class DataService {
     }
 
     public static Map<String, Integer> topTimeListened(JSONArray array) {
-        Map<String, Integer> map = new LinkedHashMap<>();
+        Map<String, Double> map = new LinkedHashMap<>();
 
         for (int i = 0; i < array.length(); i++) {
             JSONObject obj = array.getJSONObject(i);
@@ -80,12 +80,17 @@ public class DataService {
 
             String artist = entry.getArtistName();
             if (artist != null) {
-                int msPlayed = entry.getMsPlayed();
-                int minutes = msPlayed / 60000;
-                map.put(artist, map.containsKey(artist) ? map.get(artist) + minutes : minutes);
+                double hoursPlayed = entry.getMsPlayed() / 3600000.0;
+                map.put(artist, map.getOrDefault(artist, 0.0) + hoursPlayed);
             }
         }
-        return map;
+        return map.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> (int) Math.round(e.getValue()),
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
     }
 
     public static Map<String, Integer> totalMusicTime(JSONArray array) {
@@ -361,6 +366,11 @@ public class DataService {
     public Map<String, Integer> getTopArtistsNames() {
         Map<String, Integer> artistsMap = topArtistsByPlays(this.cachedData);
         return sortAndSizeMap(artistsMap, 50);
+    }
+
+    public Map<String, Integer> getTopArtistsNamesByTime() {
+        Map<String, Integer> artistMap = topTimeListened(this.cachedData);
+        return sortAndSizeMap(artistMap, 50);
     }
 
     public Map<String, Integer> getTopAlbumsMap() {
