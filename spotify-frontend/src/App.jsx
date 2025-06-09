@@ -9,7 +9,7 @@ function addNumberCommas(value) {
     return formattedValue;
 }
 
-function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData, shufflePercentData }) {
+function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData, shufflePercentData, firstTrackEverData }) {
     const totalEntriesContent = totalEntriesData ? (
         <p>Total tracks played: {addNumberCommas(totalEntriesData)}</p>
     ) : (
@@ -46,6 +46,12 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
         <p>Loading shuffle percent...</p>
     )
 
+    const firstTrackEverContent = firstTrackEverData ? (
+        <p>The first track you've ever played on Spotify was {firstTrackEverData["track"]} by {firstTrackEverData["artist"]}. It was played on {firstTrackEverData["timeStamp"]}.</p>
+    ) : (
+        <p>Loading first track ever...</p>
+    )
+
     return (
         <div>
             {totalEntriesContent}
@@ -54,6 +60,7 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
             {totalMusicTimeContent}
             {totalPodcastTimeContent}
             {shufflePercentContent}
+            {firstTrackEverContent}
         </div>
     )
 }
@@ -246,6 +253,13 @@ export default function App() {
             .catch(err => console.error(err));
     }, []);
 
+    const [firstTrackEverData, setFirstTrackEverData] = useState(null);
+    useEffect(() => {
+        axios.get('/api/first-track-ever')
+            .then(res => setFirstTrackEverData(res.data))
+            .catch(err => console.error(err));
+    })
+
     return (
       <>
           <h1>Your Extended Spotify Streaming History</h1>
@@ -257,6 +271,7 @@ export default function App() {
               totalMusicTimeData={totalMusicTimeData}
               totalPodcastTimeData={totalPodcastTimeData}
               shufflePercentData={shufflePercentData}
+              firstTrackEverData={firstTrackEverData}
           />
           <br/>
           <DataTabs

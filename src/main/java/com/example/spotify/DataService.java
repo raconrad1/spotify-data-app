@@ -18,6 +18,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Component
 public class DataService {
@@ -327,14 +329,17 @@ public class DataService {
         return map;
     }
 
-    public static String firstTrackEver(JSONArray array) {
+    public static Map<String, String> firstTrackEver(JSONArray array) {
+        Map <String, String> map = new LinkedHashMap<>();
         String firstTimeStamp = null;
         String firstTrack = null;
+        String firstArtist = null;
         for (int i = 0; i < array.length(); i++) {
             JSONObject obj = array.getJSONObject(i);
             SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
             String track = entry.getTrackName();
             String timeStamp = entry.getTimestamp();
+            String artist = entry.getArtistName();
 
             if (track != null) {
                 if (firstTimeStamp == null) {
@@ -346,11 +351,18 @@ public class DataService {
                 if (current.isBefore(earliest)) {
                     firstTrack = track;
                     firstTimeStamp = timeStamp;
-            }
+                    firstArtist = artist;
+                }
 
             }
         }
-        return firstTrack;
+        ZonedDateTime zdt = ZonedDateTime.parse(firstTimeStamp);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy 'at' h:mm a");
+        String readableTimeStamp = zdt.format(formatter);
+        map.put("track", firstTrack);
+        map.put("timeStamp", readableTimeStamp);
+        map.put("artist", firstArtist);
+        return map;
     }
 
 
@@ -429,7 +441,7 @@ public class DataService {
         return percentageTimeShuffled(this.cachedData);
     }
 
-    public String getFirstTrackEver() {
+    public Map<String, String> getFirstTrackEver() {
         return firstTrackEver(this.cachedData);
     }
 
