@@ -39,6 +39,11 @@ public class SpotifyApiController {
         return dataService.getTopSkippedTracks();
     }
 
+    @GetMapping("/top-podcasts")
+    public Map<String, Integer> getTopPodcasts() {
+        return dataService.getTopPodcasts();
+    }
+
     @GetMapping("/total-entries")
     public Integer getTotalEntries() {
         return dataService.getTotalEntries();
@@ -72,5 +77,10 @@ public class SpotifyApiController {
     @GetMapping("/percentage-time-shuffled")
     public Integer getPercentageTimeShuffled() {
         return dataService.getPercentageTimeShuffled();
+    }
+
+    @GetMapping("/first-track-ever")
+    public String getFirstTrackEver() {
+        return dataService.getFirstTrackEver();
     }
 }

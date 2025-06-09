@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.time.Instant;
 
 @Component
 public class DataService {
@@ -306,9 +307,51 @@ public class DataService {
         return map;
     }
 
+    public static Map<String, Integer> topPodcastsByPlays(JSONArray array) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String podcast = entry.getPodcastName();
+            if (podcast != null) {
+                map.put(podcast, map.containsKey(podcast) ? map.get(podcast) + 1 : 1);
+            }
+        }
+        return map;
+    }
+
+    public static String firstTrackEver(JSONArray array) {
+        String firstTimeStamp = null;
+        String firstTrack = null;
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String track = entry.getTrackName();
+            String timeStamp = entry.getTimestamp();
+
+            if (track != null) {
+                if (firstTimeStamp == null) {
+                    firstTimeStamp = timeStamp;
+                    continue;
+                }
+                Instant earliest = Instant.parse(firstTimeStamp);
+                Instant current = Instant.parse(timeStamp);
+                if (current.isBefore(earliest)) {
+                    firstTrack = track;
+                    firstTimeStamp = timeStamp;
+            }
+
+            }
+        }
+        return firstTrack;
+    }
+
 
 
     //    Functions below are used in API Controller
+
+//    Tabs
     public Map<String, Integer> getTopTrackNames() {
         JSONArray data = collectExtendedData();
         Map<String, Integer> tracksMap = topTracksByPlays(data);
@@ -337,6 +380,14 @@ public class DataService {
         return skippedMapSorted;
     }
 
+    public Map<String, Integer> getTopPodcasts() {
+        JSONArray data = collectExtendedData();
+        Map<String, Integer> podcastMap = topPodcastsByPlays(data);
+        Map<String, Integer> podcastMapSorted = sortAndSizeMap(podcastMap, 50);
+        return podcastMapSorted;
+    }
+
+//    General info
     public Integer getTotalEntries() {
         JSONArray data = collectExtendedData();
         return data.length();
@@ -381,6 +432,11 @@ public class DataService {
     public Integer getPercentageTimeShuffled() {
         JSONArray data = collectExtendedData();
         return percentageTimeShuffled(data);
+    }
+
+    public String getFirstTrackEver() {
+        JSONArray data = collectExtendedData();
+        return firstTrackEver(data);
     }
 
 }
