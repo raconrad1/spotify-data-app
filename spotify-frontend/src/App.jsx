@@ -47,7 +47,7 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
     )
 
     const firstTrackEverContent = firstTrackEverData ? (
-        <p>The first track you've ever played on Spotify was {firstTrackEverData["track"]} by {firstTrackEverData["artist"]}. It was played on {firstTrackEverData["timeStamp"]}.</p>
+        <p>The first track you've ever listened to on Spotify was {firstTrackEverData["track"]} by {firstTrackEverData["artist"]}. It was played on {firstTrackEverData["timeStamp"]}.</p>
     ) : (
         <p>Loading first track ever...</p>
     )
@@ -65,7 +65,7 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
     )
 }
 
-function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTracksData, topArtistsUniquePlaysData }) {
+function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTracksData, topArtistsUniquePlaysData, topPodcastsData }) {
     const [value, setValue] = useState('1');
 
     const handleChange = (event, newValue) => {
@@ -122,6 +122,16 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
         <p>Loading skipped tracks...</p>
     );
 
+    const topPodcastsContent = topPodcastsData ? (
+        <ul>
+            {Object.entries(topPodcastsData).map(([podcast, plays]) => (
+                <li key={podcast}>{podcast}: {addNumberCommas(plays)} plays</li>
+            ))}
+        </ul>
+    ) : (
+        <p>Loading podcasts...</p>
+    )
+
     return (
         <Box sx={{ width: '100%' }}>
             <TabContext value={value}>
@@ -147,6 +157,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
                 <Tab value="3" label="Top Artists (Unique Plays)" />
                 <Tab value="4" label="Top Albums" />
                 <Tab value="5" label="Top Skipped Tracks" />
+                <Tab value="6" label="Top Podcasts" />
             </Tabs>
             <TabPanel value="1">
                 These are your top tracks of all time, and how many times they've been played
@@ -171,6 +182,11 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             <TabPanel value="5">
                 These are the songs on your playlists that you hate the most... or you've just skipped them the most... is there a correlation there?
                 {topSkippedContent}
+            </TabPanel>
+
+            <TabPanel value="6">
+                Here are your top podcasts and how many episodes you've listened to
+                {topPodcastsContent}
             </TabPanel>
             </TabContext>
         </Box>
@@ -260,6 +276,13 @@ export default function App() {
             .catch(err => console.error(err));
     })
 
+    const [topPodcastsData, setTopPodcastsData] = useState(null);
+    useEffect(() => {
+        axios.get('/api/top-podcasts')
+            .then(res => setTopPodcastsData(res.data))
+            .catch(err => console.error(err));
+    })
+
     return (
       <>
           <h1>Your Extended Spotify Streaming History</h1>
@@ -280,6 +303,7 @@ export default function App() {
               topArtistsUniquePlaysData={topArtistsUniquePlaysData}
               topAlbumsData={topAlbumsData}
               topSkippedTracksData={topSkippedTracksData}
+              topPodcastsData={topPodcastsData}
           />
       </>
   )
