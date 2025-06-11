@@ -26,12 +26,10 @@ public class DataService {
     private String folderPath;
 
     private JSONArray cachedData;
-    private int size;
 
     @PostConstruct
     public void init() {
         this.cachedData = collectExtendedData();
-        this.size = 50;
     }
 
     public static Map<String, Integer> sortAndSizeMap(Map<String, Integer> map, int size) {
@@ -151,7 +149,7 @@ public class DataService {
                 map.put(track, map.containsKey(track) ? map.get(track) + 1 : 1);
             }
         }
-        return sortAndSizeMap(map, this.size);
+        return map;
     }
 
     public Map<String, Integer> getTopArtistsByPlays() {
@@ -166,7 +164,7 @@ public class DataService {
                 map.put(artist, map.containsKey(artist) ? map.get(artist) + 1 : 1);
             }
         }
-        return sortAndSizeMap(map, this.size);
+        return map;
     }
 
     public Map<String, Integer> getTopAlbumsByPlays() {
@@ -181,7 +179,7 @@ public class DataService {
                 map.put(album, map.containsKey(album) ? map.get(album) + 1 : 1);
             }
         }
-        return sortAndSizeMap(map, this.size);
+        return map;
     }
 
     public Map<String, Integer> getTopSkippedTracks() {
@@ -196,7 +194,7 @@ public class DataService {
                 map.put(track, map.getOrDefault(track, 0) + 1);
             }
         }
-        return sortAndSizeMap(map, this.size);
+        return map;
     }
 
     public Map<String, Integer> getTopArtistsByUniquePlays() {
@@ -214,7 +212,7 @@ public class DataService {
                 map.put(artist, map.getOrDefault(artist, 0) + 1);
             }
         }
-        return sortAndSizeMap(map, this.size);
+        return map;
     }
 
     public Integer getPercentageTimeShuffled() {
@@ -267,7 +265,7 @@ public class DataService {
                 map.put(podcast, map.containsKey(podcast) ? map.get(podcast) + 1 : 1);
             }
         }
-        return sortAndSizeMap(map, this.size);
+        return map;
     }
 
     public Map<String, String> getFirstTrackEver() {
@@ -337,7 +335,7 @@ public class DataService {
                 map.put(readableTimeStamp, map.containsKey(readableTimeStamp) ? map.get(readableTimeStamp) + 1 : 1);
             }
         }
-        return sortAndSizeMap(map, this.size);
+        return sortAndSizeMap(map, map.size());
     }
 
 
