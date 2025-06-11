@@ -9,7 +9,7 @@ function addNumberCommas(value) {
     return formattedValue;
 }
 
-function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData, shufflePercentData, firstTrackEverData }) {
+function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData, shufflePercentData, firstTrackEverData, totalRoyaltiesData }) {
     const totalEntriesContent = totalEntriesData ? (
         <p>Total tracks played: {addNumberCommas(totalEntriesData)}</p>
     ) : (
@@ -52,6 +52,12 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
         <p>Loading first track ever...</p>
     )
 
+    const totalRoyaltiesContent = totalRoyaltiesData ? (
+        <p>On Spotify, a track counts as a stream if it's played for at least 30 seconds. Artists earn an average of $0.004 per stream. That means you have contributed approximately <b>${totalRoyaltiesData}</b> to artists through your listening. However, this estimate assumes that artists receive the full amount, which often isn't the case - most labels take a significant share of the streaming revenue.</p>
+    ) : (
+        <p>Loading total royalties to artists...</p>
+    )
+
     return (
         <div>
             {totalEntriesContent}
@@ -61,6 +67,7 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
             {totalPodcastTimeContent}
             {shufflePercentContent}
             {firstTrackEverContent}
+            {totalRoyaltiesContent}
         </div>
     )
 }
@@ -283,6 +290,13 @@ export default function App() {
             .catch(err => console.error(err));
     })
 
+    const [totalRoyaltiesData, setTotalRoyaltiesData] = useState(null);
+    useEffect(() => {
+        axios.get('/api/total-royalties')
+            .then(res => setTotalRoyaltiesData(res.data))
+            .catch(err => console.error(err));
+    })
+
     return (
       <>
           <h1>Your Extended Spotify Streaming History</h1>
@@ -295,8 +309,10 @@ export default function App() {
               totalPodcastTimeData={totalPodcastTimeData}
               shufflePercentData={shufflePercentData}
               firstTrackEverData={firstTrackEverData}
+              totalRoyaltiesData={totalRoyaltiesData}
           />
           <br/>
+          <h2>Other fun stuff</h2>
           <DataTabs
               topTracksData={topTracksData}
               topArtistData={topArtistData}

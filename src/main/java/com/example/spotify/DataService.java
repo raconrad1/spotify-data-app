@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.text.DecimalFormat;
 
 @Component
 public class DataService {
@@ -362,6 +363,22 @@ public class DataService {
         return map;
     }
 
+    public static String artistRoyalties(JSONArray array) {
+        float totalStreams = 0;
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            float msplayed = entry.getMsPlayed();
+            if (msplayed >= 30000) {
+                totalStreams++;
+            }
+        }
+        DecimalFormat df = new DecimalFormat("#.00");
+        double royalties = totalStreams * 0.004;
+        String formattedRoyalties = df.format(royalties);
+        return formattedRoyalties;
+    }
+
 
 
     //    Functions below are used in SpotifyApiController.java
@@ -439,6 +456,10 @@ public class DataService {
 
     public Map<String, String> getFirstTrackEver() {
         return firstTrackEver(this.cachedData);
+    }
+
+    public String getTotalRoyalties() {
+        return artistRoyalties(this.cachedData);
     }
 
 }

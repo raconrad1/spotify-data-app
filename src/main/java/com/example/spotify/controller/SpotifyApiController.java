@@ -88,4 +88,9 @@ public class SpotifyApiController {
     public Map<String, String> getFirstTrackEver() {
         return dataService.getFirstTrackEver();
     }
+
+    @GetMapping ("/total-royalties")
+    public String getTotalRoyalties() {
+        return dataService.getTotalRoyalties();
+    }
 }
