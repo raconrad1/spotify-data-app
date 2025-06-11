@@ -21,22 +21,17 @@ public class SpotifyApiController {
 
     @GetMapping("/top-tracks")
     public Map<String, Integer> getTopTracks() {
-        return dataService.getTopTrackNames();
+        return dataService.getTopTracksByPlays();
     }
 
     @GetMapping("/top-artists")
     public Map<String, Integer> getTopArtists() {
-        return dataService.getTopArtistsNames();
-    }
-
-    @GetMapping("/top-artists-by-time")
-    public Map<String, Integer> getTopArtistsByTime() {
-        return dataService.getTopArtistsNamesByTime();
+        return dataService.getTopArtistsByPlays();
     }
 
     @GetMapping("/top-albums")
     public Map<String, Integer> getTopAlbums() {
-        return dataService.getTopAlbumsMap();
+        return dataService.getTopAlbumsByPlays();
     }
 
     @GetMapping("/top-skipped-tracks")
@@ -46,7 +41,7 @@ public class SpotifyApiController {
 
     @GetMapping("/top-podcasts")
     public Map<String, Integer> getTopPodcasts() {
-        return dataService.getTopPodcasts();
+        return dataService.getTopPodcastsByPlays();
     }
 
     @GetMapping("/total-entries")
@@ -71,7 +66,7 @@ public class SpotifyApiController {
 
     @GetMapping("/total-skipped-tracks")
     public Integer getTotalSkippedTracks() {
-        return dataService.getTotalTracksSkipped();
+        return dataService.getTotalSkippedTracks();
     }
 
     @GetMapping("/total-music-time")
@@ -96,11 +91,11 @@ public class SpotifyApiController {
 
     @GetMapping ("/total-royalties")
     public String getTotalRoyalties() {
-        return dataService.getTotalRoyalties();
+        return dataService.getTotalArtistRevenue();
     }
 
     @GetMapping ("/top-days")
     public Map<String, Integer> getTopDays() {
-        return dataService.getTopDays();
+        return dataService.getTopStreamingDays();
     }
 }
