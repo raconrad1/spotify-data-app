@@ -379,6 +379,24 @@ public class DataService {
         return formattedRoyalties;
     }
 
+    public static Map<String, Integer> topDays(JSONArray array) {
+        Map<String, Integer> map = new LinkedHashMap<>();
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject obj = array.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String timeStamp = entry.getTimestamp();
+            int ms = entry.getMsPlayed();
+
+            if(ms >= 30000) {
+                ZonedDateTime zdt = ZonedDateTime.parse(timeStamp);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy");
+                String readableTimeStamp = zdt.format(formatter);
+                map.put(readableTimeStamp, map.containsKey(readableTimeStamp) ? map.get(readableTimeStamp) + 1 : 1);
+            }
+        }
+        return map;
+    }
+
 
 
     //    Functions below are used in SpotifyApiController.java
@@ -413,6 +431,11 @@ public class DataService {
     public Map<String, Integer> getTopPodcasts() {
         Map<String, Integer> podcastMap = topPodcastsByPlays(this.cachedData);
         return sortAndSizeMap(podcastMap, 50);
+    }
+
+    public Map<String, Integer> getTopDays() {
+        Map<String, Integer> daysMap = topDays(this.cachedData);
+        return sortAndSizeMap(daysMap, 50);
     }
 
 //    General info section

@@ -93,4 +93,9 @@ public class SpotifyApiController {
     public String getTotalRoyalties() {
         return dataService.getTotalRoyalties();
     }
+
+    @GetMapping ("/top-days")
+    public Map<String, Integer> getTopDays() {
+        return dataService.getTopDays();
+    }
 }

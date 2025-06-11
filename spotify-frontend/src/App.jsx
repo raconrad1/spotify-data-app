@@ -41,7 +41,7 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
     )
 
     const shufflePercentContent = shufflePercentData ? (
-        <p>You have listened to music on shuffle {shufflePercentData}% of the time.</p>
+        <p>{shufflePercentData}% of the time you are listening to music on shuffle.</p>
     ) : (
         <p>Loading shuffle percent...</p>
     )
@@ -72,7 +72,7 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
     )
 }
 
-function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTracksData, topArtistsUniquePlaysData, topPodcastsData }) {
+function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTracksData, topArtistsUniquePlaysData, topPodcastsData, topDaysData }) {
     const [value, setValue] = useState('1');
 
     const handleChange = (event, newValue) => {
@@ -83,7 +83,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             {Object.entries(topTracksData)
                 .sort((a, b) => b[1] - a[1])
                 .map(([track, count], index) => (
-                <li key={track}>{index + 1}. {track}: {addNumberCommas(count)} plays</li>
+                    <li key={track}><b>{index + 1}</b>. {track}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>    ) : (
         <p>Loading tracks...</p>
@@ -92,7 +92,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
     const topArtistContent = topArtistData ? (
         <ul>
             {Object.entries(topArtistData).map(([artist, count], index) => (
-              <li key={artist}>{index + 1}. {artist}: {addNumberCommas(count)} plays</li>
+                <li key={artist}><b>{index + 1}</b>. {artist}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>
     ) : (
@@ -102,7 +102,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
     const topArtistsUniquePlaysContent = topArtistsUniquePlaysData ? (
         <ul>
             {Object.entries(topArtistsUniquePlaysData).map(([artist, count], index) => (
-                <li key={artist}>{index + 1}. {artist}: {addNumberCommas(count)} plays</li>
+                <li key={artist}><b>{index + 1}</b>. {artist}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>
     ) : (
@@ -112,7 +112,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
     const topAlbumsContent = topAlbumsData ? (
         <ul>
             {Object.entries(topAlbumsData).map(([album, count], index) => (
-                <li key={album}>{index + 1}. {album}: {addNumberCommas(count)} plays</li>
+                <li key={album}><b>{index + 1}</b>. {album}: {addNumberCommas(count)} plays</li>
             ))}
         </ul>
     ) : (
@@ -122,7 +122,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
     const topSkippedContent = topSkippedTracksData ? (
         <ul>
             {Object.entries(topSkippedTracksData).map(([track, skips], index) => (
-                <li key={track}>{index + 1}. {track}: {addNumberCommas(skips)} skips</li>
+                <li key={track}><b>{index + 1}</b>. {track}: {addNumberCommas(skips)} skips</li>
             ))}
         </ul>
     ) : (
@@ -132,11 +132,21 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
     const topPodcastsContent = topPodcastsData ? (
         <ul>
             {Object.entries(topPodcastsData).map(([podcast, plays], index) => (
-                <li key={podcast}>{index + 1}. {podcast}: {addNumberCommas(plays)} plays</li>
+                <li key={podcast}><b>{index + 1}</b>. {podcast}: {addNumberCommas(plays)} plays</li>
             ))}
         </ul>
     ) : (
         <p>Loading podcasts...</p>
+    )
+
+    const topDaysContent = topDaysData ? (
+        <ul>
+            {Object.entries(topDaysData).map(([day, plays], index) => (
+                <li key={day}><b>{index + 1}</b>. {day}: {addNumberCommas(plays)} plays</li>
+            ))}
+        </ul>
+    ) : (
+        <p>Loading top days...</p>
     )
 
     return (
@@ -165,6 +175,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
                 <Tab value="4" label="Top Albums" />
                 <Tab value="5" label="Top Skipped Tracks" />
                 <Tab value="6" label="Top Podcasts" />
+                <Tab value="7" label="Days Most Listened" />
             </Tabs>
             <TabPanel value="1">
                 These are your top tracks of all time, and how many times they've been played
@@ -194,6 +205,11 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             <TabPanel value="6">
                 Here are your top podcasts and how many episodes you've listened to
                 {topPodcastsContent}
+            </TabPanel>
+
+            <TabPanel value="7">
+                Here are the days that you've listened to music the most. The track was not counted unless it was listened to for at least 30 seconds.
+                {topDaysContent}
             </TabPanel>
             </TabContext>
         </Box>
@@ -297,6 +313,13 @@ export default function App() {
             .catch(err => console.error(err));
     })
 
+    const [topDaysData, setTopDaysData] = useState(null);
+    useEffect(() => {
+        axios.get('/api/top-days')
+            .then(res => setTopDaysData(res.data))
+            .catch(err => console.error(err));
+    })
+
     return (
       <>
           <h1>Your Extended Spotify Streaming History</h1>
@@ -320,6 +343,7 @@ export default function App() {
               topAlbumsData={topAlbumsData}
               topSkippedTracksData={topSkippedTracksData}
               topPodcastsData={topPodcastsData}
+              topDaysData={topDaysData}
           />
       </>
   )
