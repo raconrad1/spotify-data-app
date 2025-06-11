@@ -9,11 +9,17 @@ function addNumberCommas(value) {
     return formattedValue;
 }
 
-function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData, shufflePercentData, firstTrackEverData, totalRoyaltiesData }) {
+function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalStreamsData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData, shufflePercentData, firstTrackEverData, totalRoyaltiesData }) {
     const totalEntriesContent = totalEntriesData ? (
-        <p>Total tracks played: {addNumberCommas(totalEntriesData)}</p>
+        <p>Total entries: {addNumberCommas(totalEntriesData)}</p>
     ) : (
-        <p>Loading total tracks played...</p>
+        <p>Loading total entries...</p>
+    )
+
+    const totalStreamsContent = totalStreamsData ? (
+        <p>Total streams: {addNumberCommas(totalStreamsData)}</p>
+    ) : (
+        <p>Loading total streams...</p>
     )
 
     const totalUniqueEntriesContent = totalUniqueEntriesData ? (
@@ -53,14 +59,15 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalSkipsData
     )
 
     const totalRoyaltiesContent = totalRoyaltiesData ? (
-        <p>On Spotify, a track counts as a stream if it's played for at least 30 seconds. Artists earn an average of $0.004 per stream. That means you have contributed approximately <b>${totalRoyaltiesData}</b> to artists through your listening. However, this estimate assumes that artists receive the full amount, which often isn't the case - most labels take a significant share of the streaming revenue.</p>
+        <p>On Spotify, artists earn an average of $0.004 per stream. That means you have contributed approximately <b>${totalRoyaltiesData}</b> to artists through your listening. However, this estimate assumes that artists receive the full amount, which often isn't the case - most labels take a significant share of the streaming revenue.</p>
     ) : (
-        <p>Loading total royalties to artists...</p>
+        <p>Loading total revenue to artists...</p>
     )
 
     return (
         <div>
             {totalEntriesContent}
+            {totalStreamsContent}
             {totalUniqueEntriesContent}
             {totalSkipsContent}
             {totalMusicTimeContent}
@@ -178,22 +185,22 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
                 <Tab value="7" label="Days Most Listened" />
             </Tabs>
             <TabPanel value="1">
-                These are your top tracks of all time, and how many times they've been played
+                These are your top tracks of all time, and how many times they've been streamed
                 {topTracksContent}
             </TabPanel>
 
             <TabPanel value="2">
-                Here are the artists you've listened to the most, and how many times you played a song of theirs
+                Here are the artists you've listened to the most, and how many times you streamed a song of theirs
                 {topArtistContent}
             </TabPanel>
 
             <TabPanel value="3">
-                Here are your top artists again, but only including unique songs. This is to show the variety of songs that you've heard from a given artist
+                Here are your top artists again, but only including unique songs. This is to show the variety of songs that you've streamed from a given artist
                 {topArtistsUniquePlaysContent}
             </TabPanel>
 
             <TabPanel value="4">
-                These are the albums you've listened to the most, or maybe the songs from this artist that you've listen to the most are on this album
+                These are the songs you've streamed the most, or they include your favorite tracks by this artist.
                 {topAlbumsContent}
             </TabPanel>
 
@@ -208,7 +215,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             </TabPanel>
 
             <TabPanel value="7">
-                Here are the days that you've listened to music the most. The track was not counted unless it was listened to for at least 30 seconds.
+                Here are the days that you've streamed the most music.
                 {topDaysContent}
             </TabPanel>
             </TabContext>
@@ -253,14 +260,23 @@ export default function App() {
     }, []);
 
     const [totalEntriesData, setTotalEntriesData] = useState(null);
-    const [totalUniqueEntriesData, setTotalUniqueEntriesData] = useState(null);
     useEffect(() => {
         axios.get('/api/total-entries')
             .then(res => setTotalEntriesData(res.data))
             .catch(err => console.error(err));
+    }, []);
 
+    const [totalUniqueEntriesData, setTotalUniqueEntriesData] = useState(null);
+    useEffect( () => {
         axios.get('/api/total-unique-entries')
             .then(res => setTotalUniqueEntriesData(res.data))
+            .catch(err => console.error(err));
+    }, []);
+
+    const [totalStreamsData, setTotalStreamsData] = useState(null);
+    useEffect(() => {
+        axios.get('/api/total-streams')
+            .then(res => setTotalStreamsData(res.data))
             .catch(err => console.error(err));
     }, []);
 
@@ -324,8 +340,10 @@ export default function App() {
       <>
           <h1>Your Extended Spotify Streaming History</h1>
           <h2>General stats</h2>
+          <p><b>Important:</b> Spotify considers a <b>stream</b> as a track that was played for 30 seconds or more. Anything else here that is not referred to as a stream could have been played for only a few seconds before being skipped, for example.</p>
           <GeneralStats
               totalEntriesData={totalEntriesData}
+              totalStreamsData={totalStreamsData}
               totalUniqueEntriesData={totalUniqueEntriesData}
               totalSkipsData={totalSkipsData}
               totalMusicTimeData={totalMusicTimeData}

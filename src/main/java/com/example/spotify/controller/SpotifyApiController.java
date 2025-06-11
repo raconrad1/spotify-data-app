@@ -54,6 +54,11 @@ public class SpotifyApiController {
         return dataService.getTotalEntries();
     }
 
+    @GetMapping("/total-streams")
+    public Integer getTotalStreams() {
+        return dataService.getTotalStreams();
+    }
+
     @GetMapping("/total-unique-entries")
     public Integer getTotalUniqueEntries() {
         return dataService.getTotalUniqueEntries();
