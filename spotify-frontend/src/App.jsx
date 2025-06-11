@@ -224,117 +224,85 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
 }
 
 export default function App() {
-    const [topTracksData, setTopTracksData] = useState(null)
-    useEffect(() => {
-        axios.get('/api/top-tracks')
-            .then(res => setTopTracksData(res.data))
-            .catch(err => console.error(err))
-    }, [])
+        const [topTracksData, setTopTracksData] = useState(null)
+        const [topArtistData, setTopArtistData] = useState(null)
+        const [topArtistsUniquePlaysData, setTopArtistsUniquePlaysData] = useState(null)
+        const [topAlbumsData, setTopAlbumsData] = useState(null)
+        const [topSkippedTracksData, setTopSkippedTracksData] = useState(null)
+        const [totalEntriesData, setTotalEntriesData] = useState(null)
+        const [totalUniqueEntriesData, setTotalUniqueEntriesData] = useState(null)
+        const [totalStreamsData, setTotalStreamsData] = useState(null)
+        const [totalSkipsData, setTotalSkipsData] = useState(null)
+        const [totalMusicTimeData, setTotalMusicTimeData] = useState(null)
+        const [totalPodcastTimeData, setTotalPodcastTimeData] = useState(null)
+        const [shufflePercentData, setShufflePercentData] = useState(null)
+        const [firstTrackEverData, setFirstTrackEverData] = useState(null)
+        const [topPodcastsData, setTopPodcastsData] = useState(null)
+        const [totalRoyaltiesData, setTotalRoyaltiesData] = useState(null)
+        const [topDaysData, setTopDaysData] = useState(null)
 
-    const [topArtistData, setTopArtistData] = useState(null)
-    useEffect(() => {
-        axios.get('/api/top-artists')
-            .then(res => setTopArtistData(res.data))
-            .catch(err => console.error(err))
-    }, []);
+        useEffect(() => {
+            const fetchAllData = async () => {
+                try {
+                    const [
+                        topTracks,
+                        topArtists,
+                        topArtistsUnique,
+                        topAlbums,
+                        topSkipped,
+                        totalEntries,
+                        totalUniqueEntries,
+                        totalStreams,
+                        totalSkips,
+                        totalMusicTime,
+                        totalPodcastTime,
+                        shufflePercent,
+                        firstTrack,
+                        topPodcasts,
+                        totalRoyalties,
+                        topDays
+                    ] = await Promise.all([
+                        axios.get('/api/top-tracks'),
+                        axios.get('/api/top-artists'),
+                        axios.get('/api/top-artists-unique-plays'),
+                        axios.get('/api/top-albums'),
+                        axios.get('/api/top-skipped-tracks'),
+                        axios.get('/api/total-entries'),
+                        axios.get('/api/total-unique-entries'),
+                        axios.get('/api/total-streams'),
+                        axios.get('/api/total-skipped-tracks'),
+                        axios.get('/api/total-music-time'),
+                        axios.get('/api/total-podcast-time'),
+                        axios.get('/api/percentage-time-shuffled'),
+                        axios.get('/api/first-track-ever'),
+                        axios.get('/api/top-podcasts'),
+                        axios.get('/api/total-royalties'),
+                        axios.get('/api/top-days')
+                    ])
 
-    const [topArtistsUniquePlaysData, setTopArtistsUniquePlaysData] = useState(null)
-    useEffect(() => {
-        axios.get('/api/top-artists-unique-plays')
-            .then(res => setTopArtistsUniquePlaysData(res.data))
-            .catch(err => console.error(err))
-    }, []);
+                    setTopTracksData(topTracks.data)
+                    setTopArtistData(topArtists.data)
+                    setTopArtistsUniquePlaysData(topArtistsUnique.data)
+                    setTopAlbumsData(topAlbums.data)
+                    setTopSkippedTracksData(topSkipped.data)
+                    setTotalEntriesData(totalEntries.data)
+                    setTotalUniqueEntriesData(totalUniqueEntries.data)
+                    setTotalStreamsData(totalStreams.data)
+                    setTotalSkipsData(totalSkips.data)
+                    setTotalMusicTimeData(totalMusicTime.data)
+                    setTotalPodcastTimeData(totalPodcastTime.data)
+                    setShufflePercentData(shufflePercent.data)
+                    setFirstTrackEverData(firstTrack.data)
+                    setTopPodcastsData(topPodcasts.data)
+                    setTotalRoyaltiesData(totalRoyalties.data)
+                    setTopDaysData(topDays.data)
+                } catch (err) {
+                    console.error('Failed to fetch data:', err)
+                }
+            }
 
-    const [topAlbumsData, setTopAlbumsData] = useState(null)
-    useEffect(() => {
-        axios.get('/api/top-albums')
-            .then(res => setTopAlbumsData(res.data))
-            .catch(err => console.error(err))
-    }, []);
-
-    const [topSkippedTracksData, setTopSkippedTracksData] = useState(null)
-    useEffect(() => {
-        axios.get('/api/top-skipped-tracks')
-            .then(res => setTopSkippedTracksData(res.data))
-            .catch(err => console.error(err))
-    }, []);
-
-    const [totalEntriesData, setTotalEntriesData] = useState(null);
-    useEffect(() => {
-        axios.get('/api/total-entries')
-            .then(res => setTotalEntriesData(res.data))
-            .catch(err => console.error(err));
-    }, []);
-
-    const [totalUniqueEntriesData, setTotalUniqueEntriesData] = useState(null);
-    useEffect( () => {
-        axios.get('/api/total-unique-entries')
-            .then(res => setTotalUniqueEntriesData(res.data))
-            .catch(err => console.error(err));
-    }, []);
-
-    const [totalStreamsData, setTotalStreamsData] = useState(null);
-    useEffect(() => {
-        axios.get('/api/total-streams')
-            .then(res => setTotalStreamsData(res.data))
-            .catch(err => console.error(err));
-    }, []);
-
-    const [totalSkipsData, setTotalSkipsData] = useState(null);
-    useEffect(() => {
-        axios.get('/api/total-skipped-tracks')
-            .then(res => setTotalSkipsData(res.data))
-            .catch(err => console.error(err));
-    }, []);
-
-    const [totalMusicTimeData, setTotalMusicTimeData] = useState(null);
-    useEffect(() => {
-        axios.get('/api/total-music-time')
-            .then(res => setTotalMusicTimeData(res.data))
-            .catch(err => console.error(err));
-    }, []);
-
-    const [totalPodcastTimeData, setTotalPodcastTimeData] = useState(null);
-    useEffect(() => {
-        axios.get('/api/total-podcast-time')
-            .then(res => setTotalPodcastTimeData(res.data))
-            .catch(err => console.error(err));
-    }, []);
-
-    const [shufflePercentData, setShufflePercentData] = useState(null);
-    useEffect(() => {
-        axios.get('/api/percentage-time-shuffled')
-            .then(res => setShufflePercentData(res.data))
-            .catch(err => console.error(err));
-    }, []);
-
-    const [firstTrackEverData, setFirstTrackEverData] = useState(null);
-    useEffect(() => {
-        axios.get('/api/first-track-ever')
-            .then(res => setFirstTrackEverData(res.data))
-            .catch(err => console.error(err));
-    })
-
-    const [topPodcastsData, setTopPodcastsData] = useState(null);
-    useEffect(() => {
-        axios.get('/api/top-podcasts')
-            .then(res => setTopPodcastsData(res.data))
-            .catch(err => console.error(err));
-    })
-
-    const [totalRoyaltiesData, setTotalRoyaltiesData] = useState(null);
-    useEffect(() => {
-        axios.get('/api/total-royalties')
-            .then(res => setTotalRoyaltiesData(res.data))
-            .catch(err => console.error(err));
-    })
-
-    const [topDaysData, setTopDaysData] = useState(null);
-    useEffect(() => {
-        axios.get('/api/top-days')
-            .then(res => setTopDaysData(res.data))
-            .catch(err => console.error(err));
-    })
+            fetchAllData()
+        }, [])
 
     return (
       <>
@@ -365,4 +333,4 @@ export default function App() {
           />
       </>
   )
-}
+    }
