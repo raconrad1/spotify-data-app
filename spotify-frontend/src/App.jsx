@@ -158,8 +158,10 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
 
     const topDaysContent = topDaysData ? (
         <ul>
-            {Object.entries(topDaysData).map(([day, plays], index) => (
-                <li key={day}><b>{index + 1}</b>. {day}: {addNumberCommas(plays)} plays</li>
+            {Object.entries(topDaysData)
+                .sort((a, b) => b[1].hours - a[1].hours)
+                .map(([day, { streams, hours }], index) => (
+                <li key={day}><b>{index + 1}</b>. {day}: {addNumberCommas(streams)} plays, {hours.toFixed(1)} hours listened</li>
             ))}
         </ul>
     ) : (

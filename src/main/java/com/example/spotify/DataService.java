@@ -320,8 +320,18 @@ public class DataService {
         return formattedRoyalties;
     }
 
-    public Map<String, Integer> getTopStreamingDays() {
-        Map<String, Integer> map = new LinkedHashMap<>();
+    public static class DailyStats {
+        public int streams = 0;
+        public double hours = 0;
+
+        void addPlay(int ms) {
+            streams++;
+            hours += ms / 1000.0 / 60.0 / 60.0;
+        }
+    }
+
+    public Map<String, DailyStats> getTopStreamingDays() {
+        Map<String, DailyStats> map = new LinkedHashMap<>();
         for (int i = 0; i < this.cachedData.length(); i++) {
             JSONObject obj = this.cachedData.getJSONObject(i);
             SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
@@ -332,10 +342,11 @@ public class DataService {
                 ZonedDateTime zdt = ZonedDateTime.parse(timeStamp);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy");
                 String readableTimeStamp = zdt.format(formatter);
-                map.put(readableTimeStamp, map.containsKey(readableTimeStamp) ? map.get(readableTimeStamp) + 1 : 1);
+                DailyStats daily = map.computeIfAbsent(readableTimeStamp, k -> new DailyStats());
+                daily.addPlay(ms);
             }
         }
-        return sortAndSizeMap(map, map.size());
+        return map;
     }
 
 
