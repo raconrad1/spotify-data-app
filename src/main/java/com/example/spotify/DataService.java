@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Year;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.time.Instant;
@@ -330,7 +331,7 @@ public class DataService {
         }
     }
 
-    public Map<String, DailyStats> getTopStreamingDays() {
+    public Map<String, DailyStats> getTopDays() {
         Map<String, DailyStats> map = new LinkedHashMap<>();
         for (int i = 0; i < this.cachedData.length(); i++) {
             JSONObject obj = this.cachedData.getJSONObject(i);
@@ -344,6 +345,46 @@ public class DataService {
                 String readableTimeStamp = zdt.format(formatter);
                 DailyStats daily = map.computeIfAbsent(readableTimeStamp, k -> new DailyStats());
                 daily.addPlay(ms);
+            }
+        }
+        return map;
+    }
+
+    public static class YearlyStats {
+        public int streams = 0;
+        public double hours = 0;
+        public int uniqueStreams = 0;
+
+        void addPlay(int ms, boolean uniquePlay) {
+            streams++;
+            hours += ms / 1000.0 / 60.0 / 60.0;
+            if(uniquePlay) {
+                uniqueStreams++;
+            }
+        }
+    }
+
+    public Map<String, YearlyStats> getTopYears () {
+        Map<String, YearlyStats> map = new LinkedHashMap<>();
+        Set<String> songsSeen = new HashSet<>();
+        for (int i = 0; i < this.cachedData.length(); i++) {
+            JSONObject obj = this.cachedData.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String timeStamp = entry.getTimestamp();
+            int ms = entry.getMsPlayed();
+            String track = entry.getSpotifyTrackUri();
+
+            if(ms >= 30000) {
+                ZonedDateTime zdt = ZonedDateTime.parse(timeStamp);
+                String year = String.valueOf(zdt.getYear());
+
+                YearlyStats yearly = map.computeIfAbsent(year, k -> new YearlyStats());
+                if (songsSeen.contains(track)) {
+                    yearly.addPlay(ms, false);
+                    continue;
+                }
+                yearly.addPlay(ms, true);
+                songsSeen.add(track);
             }
         }
         return map;

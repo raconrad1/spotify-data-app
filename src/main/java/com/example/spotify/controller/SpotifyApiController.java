@@ -96,6 +96,11 @@ public class SpotifyApiController {
 
     @GetMapping ("/top-days")
     public Map<String, DataService.DailyStats> getTopDays() {
-        return dataService.getTopStreamingDays();
+        return dataService.getTopDays();
+    }
+
+    @GetMapping ("/top-years")
+    public Map<String, DataService.YearlyStats> getTopYears() {
+        return dataService.getTopYears();
     }
 }

@@ -79,7 +79,7 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalStreamsDa
     )
 }
 
-function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTracksData, topArtistsUniquePlaysData, topPodcastsData, topDaysData }) {
+function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTracksData, topArtistsUniquePlaysData, topPodcastsData, topYearsData, topDaysData }) {
     const [value, setValue] = useState('1');
 
     const handleChange = (event, newValue) => {
@@ -156,6 +156,18 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
         <p>Loading podcasts...</p>
     )
 
+    const topYearsContent = topYearsData ? (
+        <ul>
+            {Object.entries(topYearsData)
+                .sort((a, b) => b[1].year - a[1].year)
+                .map(([year, { streams, hours, uniqueStreams }], index) => (
+                    <li key={year}><b>{index + 1}</b>. {year}: {addNumberCommas(streams)} streams, {hours.toFixed(1)} hours listened, {addNumberCommas(uniqueStreams)} unique streams</li>
+                ))}
+        </ul>
+    ) : (
+        <p>Loading top years...</p>
+    )
+
     const topDaysContent = topDaysData ? (
         <ul>
             {Object.entries(topDaysData)
@@ -194,7 +206,8 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
                 <Tab value="4" label="Top Albums" />
                 <Tab value="5" label="Top Skipped Tracks" />
                 <Tab value="6" label="Top Podcasts" />
-                <Tab value="7" label="Days Most Listened" />
+                <Tab value="7" label="Years Most Listened" />
+                <Tab value="8" label="Days Most Listened" />
             </Tabs>
             <TabPanel value="1">
                 These are your top tracks of all time, and how many times they've been streamed
@@ -227,6 +240,11 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             </TabPanel>
 
             <TabPanel value="7">
+                Here are the years that you've streamed the most music, as well as the number of new songs you streamed that year!
+                {topYearsContent}
+            </TabPanel>
+
+            <TabPanel value="8">
                 Here are the days that you've streamed the most music.
                 {topDaysContent}
             </TabPanel>
@@ -251,6 +269,7 @@ export default function App() {
         const [firstTrackEverData, setFirstTrackEverData] = useState(null)
         const [topPodcastsData, setTopPodcastsData] = useState(null)
         const [totalRoyaltiesData, setTotalRoyaltiesData] = useState(null)
+        const [topYearsData, setTopYearsData] = useState(null)
         const [topDaysData, setTopDaysData] = useState(null)
 
         useEffect(() => {
@@ -272,6 +291,7 @@ export default function App() {
                         firstTrack,
                         topPodcasts,
                         totalRoyalties,
+                        topYears,
                         topDays
                     ] = await Promise.all([
                         axios.get('/api/top-tracks'),
@@ -289,6 +309,7 @@ export default function App() {
                         axios.get('/api/first-track-ever'),
                         axios.get('/api/top-podcasts'),
                         axios.get('/api/total-royalties'),
+                        axios.get('api/top-years'),
                         axios.get('/api/top-days')
                     ])
 
@@ -307,6 +328,7 @@ export default function App() {
                     setFirstTrackEverData(firstTrack.data)
                     setTopPodcastsData(topPodcasts.data)
                     setTotalRoyaltiesData(totalRoyalties.data)
+                    setTopYearsData(topYears.data)
                     setTopDaysData(topDays.data)
                 } catch (err) {
                     console.error('Failed to fetch data:', err)
@@ -341,6 +363,7 @@ export default function App() {
               topAlbumsData={topAlbumsData}
               topSkippedTracksData={topSkippedTracksData}
               topPodcastsData={topPodcastsData}
+              topYearsData={topYearsData}
               topDaysData={topDaysData}
           />
       </>
