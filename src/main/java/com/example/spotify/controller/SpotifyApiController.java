@@ -19,9 +19,9 @@ public class SpotifyApiController {
         this.dataService = dataService;
     }
 
-    @GetMapping("/top-tracks")
-    public Map<String, Integer> getTopTracks() {
-        return dataService.getTopTracksByPlays();
+    @GetMapping("/track-stats")
+    public Map<String, DataService.TrackStats> getTrackStats() {
+        return dataService.getTrackStatsMap();
     }
 
     @GetMapping("/top-artists")
@@ -32,11 +32,6 @@ public class SpotifyApiController {
     @GetMapping("/top-albums")
     public Map<String, Integer> getTopAlbums() {
         return dataService.getTopAlbumsByPlays();
-    }
-
-    @GetMapping("/top-skipped-tracks")
-    public Map<String, Integer> getTopSkippedTracks() {
-        return dataService.getTopSkippedTracks();
     }
 
     @GetMapping("/top-podcasts")

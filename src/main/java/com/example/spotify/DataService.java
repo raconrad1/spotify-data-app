@@ -138,18 +138,68 @@ public class DataService {
         return map;
     }
 
-    public Map<String, Integer> getTopTracksByPlays() {
-        Map<String, Integer> map = new LinkedHashMap<>();
+    public static class TrackStats {
+        String trackName;
+        String artist;
+        int streamCount = 0;
+        int skipCount = 0;
+        String firstPlayedDate = null;
+        List<SpotifyPlaybackEntry> playbackHistory = new ArrayList<>();
+
+        public TrackStats() {}
+
+        public TrackStats(String trackName, String artist, String playedAt, SpotifyPlaybackEntry entry) {
+            this.trackName = trackName;
+            this.artist = artist;
+            this.streamCount = 1;
+            this.firstPlayedDate = playedAt;
+            this.playbackHistory.add(entry);
+        }
+
+        public void addStream(String playedAt, SpotifyPlaybackEntry entry) {
+            streamCount++;
+            if (firstPlayedDate == null || playedAt.compareTo(firstPlayedDate) < 0) {
+                firstPlayedDate = playedAt;
+            }
+            playbackHistory.add(entry);
+        }
+
+        public void incrementSkip() {
+            skipCount++;
+        }
+        public String getTrackName() { return trackName; }
+        public String getArtist() { return artist; }
+        public int getStreamCount() { return streamCount; }
+        public int getSkipCount() { return skipCount; }
+        public String getFirstPlayedDate() { return firstPlayedDate; }
+        public List<SpotifyPlaybackEntry> getPlaybackHistory() { return playbackHistory; }
+    }
+
+    public Map<String, TrackStats> getTrackStatsMap() {
+        Map<String, TrackStats> map = new LinkedHashMap<>();
 
         for (int i = 0; i < this.cachedData.length(); i++) {
             JSONObject obj = this.cachedData.getJSONObject(i);
             SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
             String track = entry.getTrackName();
+            String artist = entry.getArtistName();
+            String playedAt = entry.getTimestamp();
             int ms = entry.getMsPlayed();
-            if (track != null && ms >= 30000) {
-                map.put(track, map.containsKey(track) ? map.get(track) + 1 : 1);
+
+            if (track == null || artist == null) continue;
+
+            map.putIfAbsent(track, new TrackStats(track, artist, playedAt, entry));
+            TrackStats stats = map.get(track);
+
+            if (ms >= 30000) {
+                stats.addStream(playedAt, entry);
+            }
+
+            if (entry.isSkipped()) {
+                stats.incrementSkip();
             }
         }
+
         return map;
     }
 
@@ -178,21 +228,6 @@ public class DataService {
             int ms = entry.getMsPlayed();
             if (album != null && ms >= 30000) {
                 map.put(album, map.containsKey(album) ? map.get(album) + 1 : 1);
-            }
-        }
-        return map;
-    }
-
-    public Map<String, Integer> getTopSkippedTracks() {
-        Map<String, Integer> map = new LinkedHashMap<>();
-
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            boolean skipped = entry.isSkipped();
-            String track = entry.getTrackName();
-            if (skipped && track != null) {
-                map.put(track, map.getOrDefault(track, 0) + 1);
             }
         }
         return map;
