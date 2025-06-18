@@ -3,10 +3,10 @@ import axios from 'axios'
 import './App.css'
 import { Box, Tabs, Tab } from '@mui/material'
 import { TabContext, TabPanel } from '@mui/lab'
+import { styled } from '@mui/material/styles';
 
 function addNumberCommas(value) {
-    const formattedValue = Number(value).toLocaleString('en-us');
-    return formattedValue;
+    return Number(value).toLocaleString('en-us');
 }
 
 function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalStreamsData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData, shufflePercentData, firstTrackEverData, totalRoyaltiesData }) {
@@ -92,97 +92,134 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             {children}
         </div>
     )
+
+    const StyledRow = styled(Box)(({ theme }) => ({
+        display: 'flex',
+        justifyContent: 'space-between',
+        paddingTop: theme.spacing(1),
+        paddingBottom: theme.spacing(1),
+        borderBottom: '1px solid #e0e0e0',
+    }));
+
     const topTracksContent = topTracksData ? (
-        <ul>
+        <Box>
             {Object.entries(topTracksData)
                 .sort((a, b) => b[1] - a[1])
                 .map(([track, count], index) => (
-                    <li key={track}><b>{index + 1}</b>. {track}: {addNumberCommas(count)} streams</li>
+                    <StyledRow>
+                        <span><b>{index + 1}</b>. {track}</span>
+                        <span>{addNumberCommas(count)} streams</span>
+                    </StyledRow>
             ))}
-        </ul>    ) : (
+        </Box>
+    ) : (
         <p>Loading tracks...</p>
     );
 
     const topArtistContent = topArtistData ? (
-        <ul>
+        <Box>
             {Object.entries(topArtistData)
                 .sort((a, b) => b[1] - a[1])
                 .map(([artist, count], index) => (
-                <li key={artist}><b>{index + 1}</b>. {artist}: {addNumberCommas(count)} streams</li>
-            ))}
-        </ul>
+                    <StyledRow>
+                        <span><b>{index + 1}.</b> {artist}</span>
+                        <span>{addNumberCommas(count)} streams</span>
+                    </StyledRow>
+                ))}
+        </Box>
     ) : (
         <p>Loading artists...</p>
     );
 
     const topArtistsUniquePlaysContent = topArtistsUniquePlaysData ? (
-        <ul>
+        <Box>
             {Object.entries(topArtistsUniquePlaysData)
                 .sort((a, b) => b[1] - a[1])
                 .map(([artist, count], index) => (
-                <li key={artist}><b>{index + 1}</b>. {artist}: {addNumberCommas(count)} streams</li>
+                    <StyledRow>
+                        <span><b>{index + 1}</b>. {artist}</span>
+                        <span>{addNumberCommas(count)} streams</span>
+                    </StyledRow>
             ))}
-        </ul>
+        </Box>
     ) : (
         <p>Loading artists...</p>
     );
 
     const topAlbumsContent = topAlbumsData ? (
-        <ul>
+        <Box>
             {Object.entries(topAlbumsData)
                 .sort((a, b) => b[1] - a[1])
                 .map(([album, count], index) => (
-                <li key={album}><b>{index + 1}</b>. {album}: {addNumberCommas(count)} streams</li>
+                    <StyledRow>
+                        <span><b>{index + 1}</b>. {album}</span>
+                        <span>{addNumberCommas(count)} streams</span>
+                    </StyledRow>
             ))}
-        </ul>
+        </Box>
     ) : (
         <p>Loading albums...</p>
     );
 
     const topSkippedContent = topSkippedTracksData ? (
-        <ul>
+        <Box>
             {Object.entries(topSkippedTracksData)
                 .sort((a, b) => b[1] - a[1])
                 .map(([track, skips], index) => (
-                <li key={track}><b>{index + 1}</b>. {track}: {addNumberCommas(skips)} skips</li>
+                    <StyledRow>
+                        <span><b>{index + 1}</b>. {track}</span>
+                        <span>{addNumberCommas(skips)} skips</span>
+                    </StyledRow>
             ))}
-        </ul>
+        </Box>
     ) : (
         <p>Loading skipped tracks...</p>
     );
 
     const topPodcastsContent = topPodcastsData ? (
-        <ul>
+        <Box>
             {Object.entries(topPodcastsData)
                 .sort((a, b) => b[1] - a[1])
                 .map(([podcast, plays], index) => (
-                <li key={podcast}><b>{index + 1}</b>. {podcast}: {addNumberCommas(plays)} plays</li>
+                    <StyledRow>
+                        <span><b>{index + 1}</b>. {podcast}</span>
+                        <span>{addNumberCommas(plays)} plays</span>
+                    </StyledRow>
             ))}
-        </ul>
+        </Box>
     ) : (
         <p>Loading podcasts...</p>
     )
 
     const topYearsContent = topYearsData ? (
-        <ul>
+        <Box>
             {Object.entries(topYearsData)
                 .sort((a, b) => b[1].year - a[1].year)
                 .map(([year, { streams, hours, uniqueStreams }], index) => (
-                    <li key={year}><b>{index + 1}</b>. {year}: {addNumberCommas(streams)} streams, {hours.toFixed(1)} hours listened, {addNumberCommas(uniqueStreams)} unique streams</li>
+                    <StyledRow>
+                        <span><b>{index + 1}</b>. {year}</span>
+                        <span>{addNumberCommas(streams)} streams</span>
+                        <span>{hours.toFixed(1)} hours listened</span>
+                        <span>{addNumberCommas(uniqueStreams)} unique streams</span>
+                    </StyledRow>
                 ))}
-        </ul>
+        </Box>
     ) : (
         <p>Loading top years...</p>
     )
 
     const topDaysContent = topDaysData ? (
-        <ul>
+        <Box>
             {Object.entries(topDaysData)
                 .sort((a, b) => b[1].hours - a[1].hours)
                 .map(([day, { streams, hours }], index) => (
-                <li key={day}><b>{index + 1}</b>. {day}: {addNumberCommas(streams)} streams, {hours.toFixed(1)} hours listened</li>
+                    <StyledRow>
+                        <span><b>{index + 1}</b>. {day}</span>
+                        <span>{addNumberCommas(streams)} plays</span>
+                        <span>{hours.toFixed(1)} hours listened</span>
+                    </StyledRow>
             ))}
-        </ul>
+        </Box>
     ) : (
         <p>Loading top days...</p>
     )
@@ -358,7 +395,7 @@ export default function App() {
     return (
       <>
           <h1>Your Extended Spotify Streaming History</h1>
-          <h2>General stats</h2>
+          <h2>General Stats</h2>
           <p><b>Important:</b> Spotify considers a <b>stream</b> as a track that was played for 30 seconds or more. Anything else here that is not referred to as a stream could have been played for only a few seconds before being skipped, for example.</p>
           <GeneralStats
               totalEntriesData={totalEntriesData}
@@ -372,7 +409,7 @@ export default function App() {
               totalRoyaltiesData={totalRoyaltiesData}
           />
           <br/>
-          <h2>Other fun stuff</h2>
+          <h2>Top Stats of All Time</h2>
           <DataTabs
               topTracksData={topTracksData}
               topArtistData={topArtistData}
