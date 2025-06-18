@@ -85,12 +85,19 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
+
+    const TabPanelContent = ({ description, children }) => (
+        <div>
+            <div style={{marginBottom: "40px", fontSize: "1.1rem"}}>{description}</div>
+            {children}
+        </div>
+    )
     const topTracksContent = topTracksData ? (
         <ul>
             {Object.entries(topTracksData)
                 .sort((a, b) => b[1] - a[1])
                 .map(([track, count], index) => (
-                    <li key={track}><b>{index + 1}</b>. {track}: {addNumberCommas(count)} plays</li>
+                    <li key={track}><b>{index + 1}</b>. {track}: {addNumberCommas(count)} streams</li>
             ))}
         </ul>    ) : (
         <p>Loading tracks...</p>
@@ -101,7 +108,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             {Object.entries(topArtistData)
                 .sort((a, b) => b[1] - a[1])
                 .map(([artist, count], index) => (
-                <li key={artist}><b>{index + 1}</b>. {artist}: {addNumberCommas(count)} plays</li>
+                <li key={artist}><b>{index + 1}</b>. {artist}: {addNumberCommas(count)} streams</li>
             ))}
         </ul>
     ) : (
@@ -113,7 +120,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             {Object.entries(topArtistsUniquePlaysData)
                 .sort((a, b) => b[1] - a[1])
                 .map(([artist, count], index) => (
-                <li key={artist}><b>{index + 1}</b>. {artist}: {addNumberCommas(count)} plays</li>
+                <li key={artist}><b>{index + 1}</b>. {artist}: {addNumberCommas(count)} streams</li>
             ))}
         </ul>
     ) : (
@@ -125,7 +132,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             {Object.entries(topAlbumsData)
                 .sort((a, b) => b[1] - a[1])
                 .map(([album, count], index) => (
-                <li key={album}><b>{index + 1}</b>. {album}: {addNumberCommas(count)} plays</li>
+                <li key={album}><b>{index + 1}</b>. {album}: {addNumberCommas(count)} streams</li>
             ))}
         </ul>
     ) : (
@@ -173,7 +180,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             {Object.entries(topDaysData)
                 .sort((a, b) => b[1].hours - a[1].hours)
                 .map(([day, { streams, hours }], index) => (
-                <li key={day}><b>{index + 1}</b>. {day}: {addNumberCommas(streams)} plays, {hours.toFixed(1)} hours listened</li>
+                <li key={day}><b>{index + 1}</b>. {day}: {addNumberCommas(streams)} streams, {hours.toFixed(1)} hours listened</li>
             ))}
         </ul>
     ) : (
@@ -194,6 +201,8 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
                     '& .MuiTab-root': {
                         minWidth: '120px',
                         padding: '12px 16px',
+                        fontSize: ".77rem",
+                        fontWeight: "800",
                     },
                     '& .MuiTabs-flexContainer': {
                         justifyContent: 'center',
@@ -202,7 +211,7 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
             >
                 <Tab value="1" label="Top Tracks" />
                 <Tab value="2" label="Top Artists" />
-                <Tab value="3" label="Top Artists (Unique Plays)" />
+                <Tab value="3" label="Top Artists (Unique Streams)" />
                 <Tab value="4" label="Top Albums" />
                 <Tab value="5" label="Top Skipped Tracks" />
                 <Tab value="6" label="Top Podcasts" />
@@ -210,43 +219,51 @@ function DataTabs({ topTracksData, topArtistData, topAlbumsData, topSkippedTrack
                 <Tab value="8" label="Days Most Listened" />
             </Tabs>
             <TabPanel value="1">
-                These are your top tracks of all time, and how many times they've been streamed
-                {topTracksContent}
+                <TabPanelContent description="These are your top tracks of all time, and how many times they've been streamed.">
+                    {topTracksContent}
+                </TabPanelContent>
             </TabPanel>
 
             <TabPanel value="2">
-                Here are the artists you've listened to the most, and how many times you streamed a song of theirs
-                {topArtistContent}
+                <TabPanelContent description="Here are the artists you've listened to the most, and how many times you streamed a song of theirs.">
+                    {topArtistContent}
+                </TabPanelContent>
             </TabPanel>
 
             <TabPanel value="3">
-                Here are your top artists again, but only including unique songs. This is to show the variety of songs that you've streamed from a given artist
-                {topArtistsUniquePlaysContent}
+                <TabPanelContent description="Here are your top artists again, but only including unique songs. This is to show the variety of songs that you've streamed from a given artist.">
+                    {topArtistsUniquePlaysContent}
+                </TabPanelContent>
             </TabPanel>
 
             <TabPanel value="4">
-                These are the songs you've streamed the most, or they include your favorite tracks by this artist.
+                <TabPanelContent description="These are the songs you've streamed the most, or they include your favorite tracks by this artist.">
                 {topAlbumsContent}
+                </TabPanelContent>
             </TabPanel>
 
             <TabPanel value="5">
-                These are the songs on your playlists that you hate the most... or you've just skipped them the most... is there a correlation there?
-                {topSkippedContent}
+                <TabPanelContent description="These are the songs on your playlists that you hate the most... or you've just skipped them the most... is there a correlation there?">
+                    {topSkippedContent}
+                </TabPanelContent>
             </TabPanel>
 
             <TabPanel value="6">
-                Here are your top podcasts and how many episodes you've listened to
-                {topPodcastsContent}
+                <TabPanelContent description="Here are your top podcasts and how many episodes you've listened to.">
+                    {topPodcastsContent}
+                </TabPanelContent>
             </TabPanel>
 
             <TabPanel value="7">
-                Here are the years that you've streamed the most music, as well as the number of new songs you streamed that year!
-                {topYearsContent}
+                <TabPanelContent description="Here are the years that you've streamed the most music, as well as the number of new songs you streamed that year.">
+                    {topYearsContent}
+                </TabPanelContent>
             </TabPanel>
 
             <TabPanel value="8">
-                Here are the days that you've streamed the most music.
-                {topDaysContent}
+                <TabPanelContent description="Here are the days that you've streamed the most music.">
+                    {topDaysContent}
+                </TabPanelContent>
             </TabPanel>
             </TabContext>
         </Box>
