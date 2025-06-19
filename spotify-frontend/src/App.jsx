@@ -107,7 +107,7 @@ function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePl
                 .sort((a, b) => b[1].streamCount - a[1].streamCount)
                 .map(([trackName, stats], index) => (
                     <StyledRow key={trackName}>
-                        <span><b>{index + 1}</b>.</span>
+                        <span><b>{index + 1}.</b></span>
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <span>{trackName}</span>
                             <span>{stats.artist}</span>
@@ -126,7 +126,8 @@ function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePl
                 .sort((a, b) => b[1] - a[1])
                 .map(([artist, count], index) => (
                     <StyledRow>
-                        <span><b>{index + 1}.</b> {artist}</span>
+                        <span><b>{index + 1}.</b></span>
+                        <span>{artist}</span>
                         <span>{addNumberCommas(count)} streams</span>
                     </StyledRow>
                 ))}
@@ -141,7 +142,8 @@ function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePl
                 .sort((a, b) => b[1] - a[1])
                 .map(([artist, count], index) => (
                     <StyledRow>
-                        <span><b>{index + 1}</b>. {artist}</span>
+                        <span><b>{index + 1}.</b></span>
+                        <span>{artist}</span>
                         <span>{addNumberCommas(count)} streams</span>
                     </StyledRow>
             ))}
@@ -156,7 +158,11 @@ function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePl
                 .sort((a, b) => b[1] - a[1])
                 .map(([album, count], index) => (
                     <StyledRow>
-                        <span><b>{index + 1}</b>. {album}</span>
+                        <span><b>{index + 1}.</b></span>
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span>{album}</span>
+                            <span>artist here</span>
+                        </div>
                         <span>{addNumberCommas(count)} streams</span>
                     </StyledRow>
             ))}
@@ -171,7 +177,11 @@ function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePl
                 .sort((a, b) => b[1].skipCount - a[1].skipCount)
                 .map(([trackName, stats], index) => (
                     <StyledRow>
-                        <span><b>{index + 1}</b>. {trackName}</span>
+                        <span><b>{index + 1}.</b></span>
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span>{trackName}</span>
+                            <span>{stats.artist}</span>
+                        </div>
                         <span>{addNumberCommas(stats.skipCount)} skips</span>
                     </StyledRow>
             ))}
@@ -186,7 +196,8 @@ function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePl
                 .sort((a, b) => b[1] - a[1])
                 .map(([podcast, plays], index) => (
                     <StyledRow>
-                        <span><b>{index + 1}</b>. {podcast}</span>
+                        <span><b>{index + 1}.</b></span>
+                        <span>{podcast}</span>
                         <span>{addNumberCommas(plays)} plays</span>
                     </StyledRow>
             ))}
@@ -201,7 +212,7 @@ function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePl
                 .sort((a, b) => b[1].year - a[1].year)
                 .map(([year, { streams, hours, uniqueStreams }], index) => (
                     <StyledRow>
-                        <span><b>{index + 1}</b>. {year}</span>
+                        <span><b>{index + 1}.</b> {year}</span>
                         <span>{addNumberCommas(streams)} streams</span>
                         <span>{hours.toFixed(1)} hours listened</span>
                         <span>{addNumberCommas(uniqueStreams)} unique streams</span>
@@ -218,7 +229,7 @@ function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePl
                 .sort((a, b) => b[1].hours - a[1].hours)
                 .map(([day, { streams, hours }], index) => (
                     <StyledRow>
-                        <span><b>{index + 1}</b>. {day}</span>
+                        <span><b>{index + 1}.</b> {day}</span>
                         <span>{addNumberCommas(streams)} plays</span>
                         <span>{hours.toFixed(1)} hours listened</span>
                     </StyledRow>
