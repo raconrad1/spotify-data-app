@@ -146,8 +146,6 @@ public class DataService {
         String firstPlayedDate = null;
         List<SpotifyPlaybackEntry> playbackHistory = new ArrayList<>();
 
-        public TrackStats() {}
-
         public TrackStats(String trackName, String artist, String playedAt, SpotifyPlaybackEntry entry) {
             this.trackName = trackName;
             this.artist = artist;
@@ -202,6 +200,74 @@ public class DataService {
 
         return map;
     }
+
+    public static class ArtistStats {
+        String artist;
+        int streamCount = 0;
+        int uniqueStreamCount = 0;
+        int skipCount = 0;
+        String firstPlayedDate = null;
+        List<SpotifyPlaybackEntry> playbackHistory = new ArrayList<>();
+        List<String> uniqueStreamsSeen = new ArrayList<>();
+
+        public ArtistStats(String artist, String playedAt, SpotifyPlaybackEntry entry) {
+            this.artist = artist;
+            this.streamCount = 1;
+            this.firstPlayedDate = playedAt;
+            this.playbackHistory.add(entry);
+        }
+
+        public void addStream(String playedAt, SpotifyPlaybackEntry entry) {
+            streamCount++;
+            if (firstPlayedDate == null || playedAt.compareTo(firstPlayedDate) < 0) {
+                firstPlayedDate = playedAt;
+            }
+            if (!uniqueStreamsSeen.contains(entry.getTrackName())) {
+                uniqueStreamsSeen.add(entry.getTrackName());
+                uniqueStreamCount++;
+            }
+            playbackHistory.add(entry);
+        }
+
+        public void incrementSkip() {
+            skipCount++;
+        }
+        public String getArtist() { return artist; }
+        public int getStreamCount() { return streamCount; }
+        public int getUniqueStreamCount() { return uniqueStreamCount; }
+        public int getSkipCount() { return skipCount; }
+        public String getFirstPlayedDate() { return firstPlayedDate; }
+        public List<SpotifyPlaybackEntry> getPlaybackHistory() { return playbackHistory; }
+        public List<String> getUniqueStreamsSeen() { return uniqueStreamsSeen; }
+    }
+
+    public Map<String, ArtistStats> getArtistStatsMap() {
+        Map<String, ArtistStats> map = new LinkedHashMap<>();
+
+        for (int i = 0; i < this.cachedData.length(); i++) {
+            JSONObject obj = this.cachedData.getJSONObject(i);
+            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+            String artist = entry.getArtistName();
+            String playedAt = entry.getTimestamp();
+            int ms = entry.getMsPlayed();
+
+            if (artist == null) continue;
+
+            map.putIfAbsent(artist, new ArtistStats(artist, playedAt, entry));
+            ArtistStats stats = map.get(artist);
+
+            if (ms >= 30000) {
+                stats.addStream(playedAt, entry);
+            }
+
+            if (entry.isSkipped()) {
+                stats.incrementSkip();
+            }
+        }
+
+        return map;
+    }
+
 
     public Map<String, Integer> getTopArtistsByPlays() {
         Map<String, Integer> map = new LinkedHashMap<>();

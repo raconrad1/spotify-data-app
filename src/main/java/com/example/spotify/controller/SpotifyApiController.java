@@ -98,4 +98,9 @@ public class SpotifyApiController {
     public Map<String, DataService.YearlyStats> getTopYears() {
         return dataService.getTopYears();
     }
+
+    @GetMapping ("/test-artists")
+    public Map<String, DataService.ArtistStats> getTestArtists() {
+        return dataService.getArtistStatsMap();
+    }
 }
