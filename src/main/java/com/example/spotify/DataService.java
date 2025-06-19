@@ -268,22 +268,6 @@ public class DataService {
         return map;
     }
 
-
-    public Map<String, Integer> getTopArtistsByPlays() {
-        Map<String, Integer> map = new LinkedHashMap<>();
-
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String artist = entry.getArtistName();
-            int ms = entry.getMsPlayed();
-            if (artist != null && ms >= 30000) {
-                map.put(artist, map.containsKey(artist) ? map.get(artist) + 1 : 1);
-            }
-        }
-        return map;
-    }
-
     public Map<String, Integer> getTopAlbumsByPlays() {
         Map<String, Integer> map = new LinkedHashMap<>();
 
@@ -294,24 +278,6 @@ public class DataService {
             int ms = entry.getMsPlayed();
             if (album != null && ms >= 30000) {
                 map.put(album, map.containsKey(album) ? map.get(album) + 1 : 1);
-            }
-        }
-        return map;
-    }
-
-    public Map<String, Integer> getTopArtistsByUniquePlays() {
-        Map<String, Integer> map = new LinkedHashMap<>();
-        Set<String> seenTracks = new HashSet<>();
-
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String artist = entry.getArtistName();
-            String track = entry.getTrackName();
-            int ms = entry.getMsPlayed();
-            if (artist != null && track != null && ms >= 30000 && !seenTracks.contains(track)) {
-                seenTracks.add(track);
-                map.put(artist, map.getOrDefault(artist, 0) + 1);
             }
         }
         return map;

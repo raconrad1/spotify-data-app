@@ -24,9 +24,9 @@ public class SpotifyApiController {
         return dataService.getTrackStatsMap();
     }
 
-    @GetMapping("/top-artists")
-    public Map<String, Integer> getTopArtists() {
-        return dataService.getTopArtistsByPlays();
+    @GetMapping ("/artist-stats")
+    public Map<String, DataService.ArtistStats> getArtistStats() {
+        return dataService.getArtistStatsMap();
     }
 
     @GetMapping("/top-albums")
@@ -52,11 +52,6 @@ public class SpotifyApiController {
     @GetMapping("/total-unique-entries")
     public Integer getTotalUniqueEntries() {
         return dataService.getTotalUniqueEntries();
-    }
-
-    @GetMapping("/top-artists-unique-plays")
-    public Map<String, Integer> getTopArtistsUniquePlays() {
-        return dataService.getTopArtistsByUniquePlays();
     }
 
     @GetMapping("/total-skipped-tracks")
@@ -97,10 +92,5 @@ public class SpotifyApiController {
     @GetMapping ("/top-years")
     public Map<String, DataService.YearlyStats> getTopYears() {
         return dataService.getTopYears();
-    }
-
-    @GetMapping ("/test-artists")
-    public Map<String, DataService.ArtistStats> getTestArtists() {
-        return dataService.getArtistStatsMap();
     }
 }

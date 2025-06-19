@@ -79,7 +79,7 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalStreamsDa
     )
 }
 
-function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePlaysData, topPodcastsData, topYearsData, topDaysData }) {
+function DataTabs({ tracksData, artistData, topAlbumsData, topPodcastsData, topYearsData, topDaysData }) {
     const [value, setValue] = useState('1');
 
     const handleChange = (event, newValue) => {
@@ -120,15 +120,15 @@ function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePl
         <p>Loading tracks...</p>
     );
 
-    const topArtistContent = topArtistData ? (
+    const topArtistContent = artistData ? (
         <Box>
-            {Object.entries(topArtistData)
-                .sort((a, b) => b[1] - a[1])
-                .map(([artist, count], index) => (
-                    <StyledRow>
+            {Object.entries(artistData)
+                .sort((a, b) => b[1].streamCount - a[1].streamCount)
+                .map(([artist, stats], index) => (
+                    <StyledRow key={artist}>
                         <span><b>{index + 1}.</b></span>
                         <span>{artist}</span>
-                        <span>{addNumberCommas(count)} streams</span>
+                        <span>{addNumberCommas(stats.streamCount)} streams</span>
                     </StyledRow>
                 ))}
         </Box>
@@ -136,15 +136,15 @@ function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePl
         <p>Loading artists...</p>
     );
 
-    const topArtistsUniquePlaysContent = topArtistsUniquePlaysData ? (
+    const topArtistsUniquePlaysContent = artistData ? (
         <Box>
-            {Object.entries(topArtistsUniquePlaysData)
-                .sort((a, b) => b[1] - a[1])
-                .map(([artist, count], index) => (
+            {Object.entries(artistData)
+                .sort((a, b) => b[1].uniqueStreamCount - a[1].uniqueStreamCount)
+                .map(([artist, stats], index) => (
                     <StyledRow>
                         <span><b>{index + 1}.</b></span>
                         <span>{artist}</span>
-                        <span>{addNumberCommas(count)} streams</span>
+                        <span>{addNumberCommas(stats.uniqueStreamCount)} streams</span>
                     </StyledRow>
             ))}
         </Box>
@@ -324,8 +324,7 @@ function DataTabs({ tracksData, topArtistData, topAlbumsData, topArtistsUniquePl
 
 export default function App() {
         const [tracksData, setTracksData] = useState(null)
-        const [topArtistData, setTopArtistData] = useState(null)
-        const [topArtistsUniquePlaysData, setTopArtistsUniquePlaysData] = useState(null)
+        const [artistData, setArtistData] = useState(null)
         const [topAlbumsData, setTopAlbumsData] = useState(null)
         const [totalEntriesData, setTotalEntriesData] = useState(null)
         const [totalUniqueEntriesData, setTotalUniqueEntriesData] = useState(null)
@@ -345,8 +344,7 @@ export default function App() {
                 try {
                     const [
                         trackStats,
-                        topArtists,
-                        topArtistsUnique,
+                        artistStats,
                         topAlbums,
                         totalEntries,
                         totalUniqueEntries,
@@ -362,8 +360,7 @@ export default function App() {
                         topDays
                     ] = await Promise.all([
                         axios.get('/api/track-stats'),
-                        axios.get('/api/top-artists'),
-                        axios.get('/api/top-artists-unique-plays'),
+                        axios.get('/api/artist-stats'),
                         axios.get('/api/top-albums'),
                         axios.get('/api/total-entries'),
                         axios.get('/api/total-unique-entries'),
@@ -380,8 +377,7 @@ export default function App() {
                     ])
 
                     setTracksData(trackStats.data)
-                    setTopArtistData(topArtists.data)
-                    setTopArtistsUniquePlaysData(topArtistsUnique.data)
+                    setArtistData(artistStats.data)
                     setTopAlbumsData(topAlbums.data)
                     setTotalEntriesData(totalEntries.data)
                     setTotalUniqueEntriesData(totalUniqueEntries.data)
@@ -423,8 +419,7 @@ export default function App() {
           <h2>Top Stats of All Time</h2>
           <DataTabs
               tracksData={tracksData}
-              topArtistData={topArtistData}
-              topArtistsUniquePlaysData={topArtistsUniquePlaysData}
+              artistData={artistData}
               topAlbumsData={topAlbumsData}
               topPodcastsData={topPodcastsData}
               topYearsData={topYearsData}
