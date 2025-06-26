@@ -9,6 +9,50 @@ function addNumberCommas(value) {
     return Number(value).toLocaleString('en-us');
 }
 
+const BackToTopButton = () => {
+    const [showButton, setShowButton] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 2000) {
+                setShowButton(true);
+            } else {
+                setShowButton(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 670,
+            behavior: 'smooth'
+        });
+    };
+
+    return (
+        <>
+            {showButton && (
+                <button
+                    onClick={scrollToTop}
+                    style={{
+                        position: 'fixed',
+                        bottom: '20px',
+                        right: '20px',
+                    }}
+                >
+                    Back to Top
+                </button>
+            )}
+        </>
+    );
+};
+
 function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalStreamsData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData, shufflePercentData, firstTrackEverData, totalRoyaltiesData }) {
     const totalEntriesContent = totalEntriesData ? (
         <p>Total entries: {addNumberCommas(totalEntriesData)}</p>
@@ -339,6 +383,8 @@ export default function App() {
         const [topYearsData, setTopYearsData] = useState(null)
         const [topDaysData, setTopDaysData] = useState(null)
 
+
+
         useEffect(() => {
             const fetchAllData = async () => {
                 try {
@@ -425,6 +471,7 @@ export default function App() {
               topYearsData={topYearsData}
               topDaysData={topDaysData}
           />
+          <BackToTopButton></BackToTopButton>
       </>
   )
     }
