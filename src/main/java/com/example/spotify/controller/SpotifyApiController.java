@@ -29,9 +29,9 @@ public class SpotifyApiController {
         return dataService.getArtistStatsMap();
     }
 
-    @GetMapping("/top-albums")
-    public Map<String, Integer> getTopAlbums() {
-        return dataService.getTopAlbumsByPlays();
+    @GetMapping("/album-stats")
+    public Map<String, DataService.AlbumStats> getAlbumStats() {
+        return dataService.getAlbumStatsMap();
     }
 
     @GetMapping("/top-podcasts")

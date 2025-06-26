@@ -268,20 +268,80 @@ public class DataService {
         return map;
     }
 
-    public Map<String, Integer> getTopAlbumsByPlays() {
-        Map<String, Integer> map = new LinkedHashMap<>();
+
+
+
+
+    public static class AlbumStats {
+        String album;
+        String artist;
+        int streamCount = 0;
+        int skipCount = 0;
+        double hours = 0;
+        String firstPlayedDate = null;
+        List<SpotifyPlaybackEntry> playbackHistory = new ArrayList<>();
+
+        public AlbumStats(String album, String artist, String playedAt, SpotifyPlaybackEntry entry) {
+            this.album = album;
+            this.artist = artist;
+            this.streamCount = 1;
+            this.hours = 0;
+            this.firstPlayedDate = playedAt;
+            this.playbackHistory.add(entry);
+        }
+
+        public void addStream(int ms, String playedAt, SpotifyPlaybackEntry entry) {
+            streamCount++;
+            if (firstPlayedDate == null || playedAt.compareTo(firstPlayedDate) < 0) {
+                firstPlayedDate = playedAt;
+            }
+            hours += ms / 1000.0 / 60.0 / 60.0;
+//            playbackHistory.add(entry);
+        }
+
+        public void incrementSkip() {
+            skipCount++;
+        }
+        public String getAlbum() { return album; }
+        public String getArtist() { return artist; }
+        public int getStreamCount() { return streamCount; }
+        public double getHours() { return hours; }
+        public int getSkipCount() { return skipCount; }
+        public String getFirstPlayedDate() { return firstPlayedDate; }
+        public List<SpotifyPlaybackEntry> getPlaybackHistory() { return playbackHistory; }
+    }
+
+    public Map<String, AlbumStats> getAlbumStatsMap() {
+        Map<String, AlbumStats> map = new LinkedHashMap<>();
 
         for (int i = 0; i < this.cachedData.length(); i++) {
             JSONObject obj = this.cachedData.getJSONObject(i);
             SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
             String album = entry.getAlbumName();
+            String artist = entry.getArtistName();
+            String playedAt = entry.getTimestamp();
             int ms = entry.getMsPlayed();
-            if (album != null && ms >= 30000) {
-                map.put(album, map.containsKey(album) ? map.get(album) + 1 : 1);
+
+            if (artist == null) continue;
+
+            map.putIfAbsent(album, new AlbumStats(album, artist, playedAt, entry));
+            AlbumStats stats = map.get(album);
+
+            if (ms >= 30000) {
+                stats.addStream(ms, playedAt, entry);
+            }
+
+            if (entry.isSkipped()) {
+                stats.incrementSkip();
             }
         }
+
         return map;
     }
+
+
+
+
 
     public Integer getPercentageTimeShuffled() {
         int tracksOnShuffle = 0;
