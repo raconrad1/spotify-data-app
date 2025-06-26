@@ -164,6 +164,35 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
         <p>Loading tracks...</p>
     );
 
+    const topNoSkipsContent = tracksData ? (
+        <Box>
+            {Object.entries(tracksData)
+                .filter(([_, data]) => data.skipCount === 0)
+                .sort((a, b) => b[1].streamCount - a[1].streamCount)
+                .map(([trackName, stats], index) => (
+                    <StyledRow key={trackName}>
+                        <span><b>{index + 1}.</b></span>
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span>{trackName}</span>
+                            <span><i>{stats.artist}</i></span>
+                        </div>
+                        <span>{addNumberCommas(stats.streamCount)} streams</span>
+                    </StyledRow>
+                ))}
+        </Box>
+    ) : (
+        <p>Loading no skips...</p>
+    );
+
+
+    // Used to sort by stream count AND skip count
+    // sort((a, b) => {
+    //     if (b[1].streamCount !== a[1].streamCount) {
+    //         return b[1].streamCount - a[1].streamCount;
+    //     }
+    //     return a[1].skipCount - b[1].skipCount;
+    // })
+
     const topArtistContent = artistData ? (
         <Box>
             {Object.entries(artistData)
@@ -305,14 +334,15 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
                     },
                 }}
             >
-                <Tab value="1" label="Top Tracks" />
-                <Tab value="2" label="Top Artists" />
-                <Tab value="3" label="Top Artists (Unique Streams)" />
-                <Tab value="4" label="Top Albums" />
-                <Tab value="5" label="Top Skipped Tracks" />
-                <Tab value="6" label="Top Podcasts" />
-                <Tab value="7" label="Yearly Stats" />
-                <Tab value="8" label="Days Most Listened" />
+                <Tab value="1" label="Tracks" />
+                <Tab value="2" label="Artists" />
+                <Tab value="3" label="Artists (Unique Streams)" />
+                <Tab value="4" label="Albums" />
+                <Tab value="5" label="Skipped Tracks" />
+                <Tab value="6" label="No Skips" />
+                <Tab value="7" label="Podcasts" />
+                <Tab value="8" label="Yearly Stats" />
+                <Tab value="9" label="Days Most Listened" />
             </Tabs>
             <TabPanel value="1">
                 <TabPanelContent description="These are your top tracks of all time, and how many times they've been streamed.">
@@ -345,18 +375,24 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
             </TabPanel>
 
             <TabPanel value="6">
+                <TabPanelContent description="Here are the songs you've listend to the most that you've NEVER skipped.">
+                    {topNoSkipsContent}
+                </TabPanelContent>
+            </TabPanel>
+
+            <TabPanel value="7">
                 <TabPanelContent description="Here are your top podcasts and how many episodes you've listened to.">
                     {topPodcastsContent}
                 </TabPanelContent>
             </TabPanel>
 
-            <TabPanel value="7">
+            <TabPanel value="8">
                 <TabPanelContent description="Here are some stats for each year that you've used Spotify, starting from the beginning!">
                     {topYearsContent}
                 </TabPanelContent>
             </TabPanel>
 
-            <TabPanel value="8">
+            <TabPanel value="9">
                 <TabPanelContent description="Here are the days that you've streamed the most music.">
                     {topDaysContent}
                 </TabPanelContent>
