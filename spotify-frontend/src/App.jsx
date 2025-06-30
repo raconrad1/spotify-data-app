@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './App.css'
-import { Box, Tabs, Tab } from '@mui/material'
+import { Box, Tabs, Tab, Button } from '@mui/material'
 import { TabContext, TabPanel } from '@mui/lab'
 import { styled } from '@mui/material/styles';
 
@@ -52,6 +52,14 @@ const BackToTopButton = () => {
         </>
     );
 };
+
+const StyledRow = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    justifyContent: 'space-between',
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    borderBottom: '1px solid #e0e0e0',
+}));
 
 function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalStreamsData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData, shufflePercentData, firstTrackEverData, totalRoyaltiesData }) {
     const totalEntriesContent = totalEntriesData ? (
@@ -123,6 +131,41 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalStreamsDa
     )
 }
 
+function DayStatRow({ index, day, data }) {
+    const [expanded, setExpanded] = useState(false);
+
+    return (
+        <Box key={day} sx={{ mb: 2 }}>
+            <StyledRow>
+                <span><b>{index + 1}.</b> {day}</span>
+                <span>{addNumberCommas(data.streams)} streams</span>
+                <span>{data.hours.toFixed(1)} hours listened</span>
+                <button size="small" onClick={() => setExpanded(!expanded)}>
+                    {expanded ? 'Hide Details' : 'Show Details'}
+                </button>
+            </StyledRow>
+            {expanded && (
+                <Box sx={{ ml: 3, mt: 1 }}>
+                    <div><b>Top Artists:</b></div>
+                    <ul>
+                        {Object.entries(data.topArtists || {}).map(([artist, count]) => (
+                            <li key={artist}>{artist} — {count} stream{count !== 1 ? 's' : ''}</li>
+                        ))}
+                    </ul>
+                    <div style={{ marginTop: '0.5rem' }}><b>Top Tracks:</b></div>
+                    <ul>
+                        {Object.entries(data.topTracks || {}).map(([track, count]) => (
+                            <li key={track}>{track} — {count} stream{count !== 1 ? 's' : ''}</li>
+                        ))}
+                    </ul>
+                </Box>
+            )}
+        </Box>
+    );
+}
+
+
+
 function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYearsData, topDaysData }) {
     const [value, setValue] = useState('1');
 
@@ -136,14 +179,6 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
             {children}
         </div>
     )
-
-    const StyledRow = styled(Box)(({ theme }) => ({
-        display: 'flex',
-        justifyContent: 'space-between',
-        paddingTop: theme.spacing(1),
-        paddingBottom: theme.spacing(1),
-        borderBottom: '1px solid #e0e0e0',
-    }));
 
     const topTracksContent = tracksData ? (
         <Box>
@@ -300,17 +335,14 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
         <Box>
             {Object.entries(topDaysData)
                 .sort((a, b) => b[1].hours - a[1].hours)
-                .map(([day, { streams, hours }], index) => (
-                    <StyledRow>
-                        <span><b>{index + 1}.</b> {day}</span>
-                        <span>{addNumberCommas(streams)} streams</span>
-                        <span>{hours.toFixed(1)} hours listened</span>
-                    </StyledRow>
-            ))}
+                .map(([day, data], index) => (
+                    <DayStatRow key={day} index={index} day={day} data={data} />
+                ))}
         </Box>
     ) : (
         <p>Loading top days...</p>
-    )
+    );
+
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -485,7 +517,7 @@ export default function App() {
       <>
           <h1>Your Extended Spotify Streaming History</h1>
           <h2>General Stats</h2>
-          <p><b>Important:</b> Spotify considers a <b>stream</b> as a track that was played for 30 seconds or more. Anything else here that is not referred to as a stream could have been played for only a few seconds before being skipped, for example.</p>
+          <p><b>Note:</b> Spotify considers a <b>stream</b> as a track that was played for 30 seconds or more.</p>
           <GeneralStats
               totalEntriesData={totalEntriesData}
               totalStreamsData={totalStreamsData}

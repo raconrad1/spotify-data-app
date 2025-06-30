@@ -268,10 +268,6 @@ public class DataService {
         return map;
     }
 
-
-
-
-
     public static class AlbumStats {
         String album;
         String artist;
@@ -338,10 +334,6 @@ public class DataService {
 
         return map;
     }
-
-
-
-
 
     public Integer getPercentageTimeShuffled() {
         int tracksOnShuffle = 0;
@@ -451,12 +443,45 @@ public class DataService {
     public static class DailyStats {
         public int streams = 0;
         public double hours = 0;
+        public Map<String, Integer> topTracks = new LinkedHashMap<>();
+        public Map<String, Integer> topArtists = new LinkedHashMap<>();
 
-        void addPlay(int ms) {
+        void addPlay(SpotifyPlaybackEntry entry) {
             streams++;
-            hours += ms / 1000.0 / 60.0 / 60.0;
+            hours += entry.getMsPlayed() / 1000.0 / 60.0 / 60.0;
+
+            String trackName = entry.getTrackName();
+            String artistName = entry.getArtistName();
+            if (trackName != null) {
+                topTracks.merge(trackName, 1, Integer::sum);
+            }
+            if (artistName != null) {
+                topArtists.merge(artistName, 1, Integer::sum);
+            }
+        }
+        void finalizeStats() {
+            topTracks = topTracks.entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                    .limit(5)
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (e1, e2) -> e1,
+                            LinkedHashMap::new
+                    ));
+
+            topArtists = topArtists.entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                    .limit(5)
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (e1, e2) -> e1,
+                            LinkedHashMap::new
+                    ));
         }
     }
+
 
     public Map<String, DailyStats> getTopDays() {
         Map<String, DailyStats> map = new LinkedHashMap<>();
@@ -471,8 +496,11 @@ public class DataService {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy");
                 String readableTimeStamp = zdt.format(formatter);
                 DailyStats daily = map.computeIfAbsent(readableTimeStamp, k -> new DailyStats());
-                daily.addPlay(ms);
+                daily.addPlay(entry);
             }
+        }
+        for (DailyStats dailyStats : map.values()) {
+            dailyStats.finalizeStats();
         }
         return map;
     }
