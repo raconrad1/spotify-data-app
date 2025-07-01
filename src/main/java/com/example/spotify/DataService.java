@@ -23,14 +23,12 @@ import java.text.DecimalFormat;
 @Component
 public class DataService {
 
-    @Value("${extended.streaming.history.path}")
-    private String folderPath;
+//    @Value("${extended.streaming.history.path}")
 
     private JSONArray cachedData;
 
-    @PostConstruct
-    public void init() {
-        this.cachedData = collectExtendedData();
+    public void loadSessionFolder(String folderPath) {
+        this.cachedData = collectExtendedData(folderPath);
     }
 
     public static Map<String, Integer> sortAndSizeMap(Map<String, Integer> map, int size) {
@@ -49,7 +47,7 @@ public class DataService {
         map.forEach((k, v) -> System.out.println(k + ": " + v));
     }
 
-    private JSONArray collectExtendedData() {
+    private JSONArray collectExtendedData(String folderPath) {
         JSONArray res = new JSONArray();
         File folder = new File(folderPath);
 
