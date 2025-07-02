@@ -49,28 +49,38 @@ public class DataService {
 
     private JSONArray collectExtendedData(String folderPath) {
         JSONArray res = new JSONArray();
-        File folder = new File(folderPath);
+        System.out.println("Collecting data from: " + folderPath);
 
         try {
-            for (File file : folder.listFiles()) {
-                String fileName = file.getName().toLowerCase();
-                if (fileName.endsWith(".json") && fileName.contains("audio")) {
-                    String content = new String(Files.readAllBytes(Paths.get(file.getPath())));
-                    JSONArray jsonArray = new JSONArray(content);
+            Files.walk(Paths.get(folderPath))
+                    .filter(Files::isRegularFile)
+                    .forEach(path -> {
+                        String fileName = path.getFileName().toString().toLowerCase();
+                        if (fileName.endsWith(".json") && fileName.contains("audio")) {
+                            try {
+                                String content = new String(Files.readAllBytes(path));
+                                System.out.println("Parsing: " + fileName);
 
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        res.put(jsonArray.getJSONObject(i));
-                    }
-                }
-            }
+                                JSONArray jsonArray = new JSONArray(content);
+                                for (int i = 0; i < jsonArray.length(); i++) {
+                                    res.put(jsonArray.getJSONObject(i));
+                                }
+                            } catch (Exception e) {
+                                System.err.println("Failed to parse " + fileName + ": " + e.getMessage());
+                            }
+                        }
+                    });
         } catch (IOException e) {
-            System.err.println("Error reading file: " + e.getMessage());
+            System.err.println("Error walking folder: " + e.getMessage());
         }
+
+        System.out.println("Total entries loaded: " + res.length());
         return res;
     }
 
 
-//    Methods used in SpotifyApiController.java
+
+    //    Methods used in SpotifyApiController.java
     public Integer getTotalEntries() {
         return this.cachedData.length();
     }
@@ -394,25 +404,34 @@ public class DataService {
         for (int i = 0; i < this.cachedData.length(); i++) {
             JSONObject obj = this.cachedData.getJSONObject(i);
             SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+
             String track = entry.getTrackName();
             String timeStamp = entry.getTimestamp();
             String artist = entry.getArtistName();
 
-            if (track != null) {
+            if (track != null && timeStamp != null) {
                 if (firstTimeStamp == null) {
                     firstTimeStamp = timeStamp;
-                    continue;
-                }
-                Instant earliest = Instant.parse(firstTimeStamp);
-                Instant current = Instant.parse(timeStamp);
-                if (current.isBefore(earliest)) {
                     firstTrack = track;
-                    firstTimeStamp = timeStamp;
                     firstArtist = artist;
+                } else {
+                    Instant earliest = Instant.parse(firstTimeStamp);
+                    Instant current = Instant.parse(timeStamp);
+                    if (current.isBefore(earliest)) {
+                        firstTrack = track;
+                        firstTimeStamp = timeStamp;
+                        firstArtist = artist;
+                    }
                 }
-
             }
         }
+        if (firstTimeStamp == null || firstTrack == null || firstArtist == null) {
+            map.put("track", "N/A");
+            map.put("timeStamp", "N/A");
+            map.put("artist", "N/A");
+            return map;
+        }
+
         ZonedDateTime zdt = ZonedDateTime.parse(firstTimeStamp);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy 'at' h:mm a");
         String readableTimeStamp = zdt.format(formatter);
