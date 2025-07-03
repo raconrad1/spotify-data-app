@@ -126,7 +126,7 @@ public class SpotifyApiController {
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFiles(@RequestParam("files") MultipartFile[] files) {
         try {
-            String sessionId = UUID.randomUUID().toString(); // or get from cookie
+            String sessionId = UUID.randomUUID().toString();
             Path sessionDir = Paths.get(System.getProperty("java.io.tmpdir"), "spotify", sessionId);
             Files.createDirectories(sessionDir);
 
