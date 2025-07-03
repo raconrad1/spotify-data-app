@@ -1,17 +1,34 @@
 import { useState } from 'react';
 import axios from 'axios';
+import JSZip from "jszip";
 
 export default function Upload({ onUploadComplete }) {
     const [error, setError] = useState("");
 
     const handleFileChange = async (e) => {
+        setError("");
         const files = Array.from(e.target.files);
-        const formData = new FormData();
+        if (!files.length) return;
 
-        files.forEach(file => formData.append("files", file));
         try {
+            const zip = new JSZip();
+
+            for (const file of files) {
+                zip.file(file.name, file);
+            }
+
+            const zippedBlob = await zip.generateAsync({ type: "blob" });
+
+            const formData = new FormData();
+            const zippedFile = new File([zippedBlob], "spotify-files.zip", {
+                type: "application/zip",
+            });
+            formData.append("files", zippedFile);
+
             const res = await axios.post("/api/upload", formData, {
-                headers: { "Content-Type": "multipart/form-data" }
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
             });
 
             onUploadComplete(res.data);

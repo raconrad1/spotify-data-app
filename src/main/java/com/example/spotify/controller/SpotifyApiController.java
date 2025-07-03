@@ -9,6 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipEntry;
+import java.nio.file.StandardCopyOption;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -131,15 +135,37 @@ public class SpotifyApiController {
             Files.createDirectories(sessionDir);
 
             for (MultipartFile file : files) {
-                Path filePath = sessionDir.resolve(file.getOriginalFilename());
-                Files.createDirectories(filePath.getParent());
-                Files.write(filePath, file.getBytes());
+                String filename = file.getOriginalFilename();
+                if (filename != null && filename.toLowerCase().endsWith(".zip")) {
+                    // Unzip the uploaded file into the sessionDir
+                    try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
+                        ZipEntry zipEntry;
+                        while ((zipEntry = zis.getNextEntry()) != null) {
+                            Path newFilePath = sessionDir.resolve(zipEntry.getName()).normalize();
 
+                            // Prevent Zip Slip attacks
+                            if (!newFilePath.startsWith(sessionDir)) {
+                                throw new IOException("Bad zip entry: " + zipEntry.getName());
+                            }
+
+                            if (zipEntry.isDirectory()) {
+                                Files.createDirectories(newFilePath);
+                            } else {
+                                Files.createDirectories(newFilePath.getParent());
+                                Files.copy(zis, newFilePath, StandardCopyOption.REPLACE_EXISTING);
+                            }
+                            zis.closeEntry();
+                        }
+                    }
+                } else {
+                    // If it's not a zip, save as-is
+                    Path filePath = sessionDir.resolve(file.getOriginalFilename());
+                    Files.write(filePath, file.getBytes());
+                }
             }
 
-            dataService.loadSessionFolder(sessionDir.toString());
             System.out.println("Calling loadSessionFolder with: " + sessionDir.toString());
-
+            dataService.loadSessionFolder(sessionDir.toString());
 
             return ResponseEntity.ok(sessionId);
         } catch (IOException e) {
@@ -147,5 +173,6 @@ public class SpotifyApiController {
             return ResponseEntity.status(500).body("Failed to upload files.");
         }
     }
+
 
 }

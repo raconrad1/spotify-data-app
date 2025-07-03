@@ -31,22 +31,6 @@ public class DataService {
         this.cachedData = collectExtendedData(folderPath);
     }
 
-    public static Map<String, Integer> sortAndSizeMap(Map<String, Integer> map, int size) {
-        return map.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(size)
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new
-                ));
-    }
-
-    public static void prettyPrintMap(Map<String, Integer> map) {
-        map.forEach((k, v) -> System.out.println(k + ": " + v));
-    }
-
     private JSONArray collectExtendedData(String folderPath) {
         JSONArray res = new JSONArray();
         System.out.println("Collecting data from: " + folderPath);
