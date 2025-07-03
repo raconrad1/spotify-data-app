@@ -1,18 +1,13 @@
 package com.example.spotify;
 
-import jakarta.annotation.PostConstruct;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.example.spotify.model.SpotifyPlaybackEntry;
 import com.example.spotify.util.SpotifyParser;
-
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Year;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.time.Instant;
@@ -22,8 +17,6 @@ import java.text.DecimalFormat;
 
 @Component
 public class DataService {
-
-//    @Value("${extended.streaming.history.path}")
 
     private JSONArray cachedData;
 

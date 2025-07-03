@@ -23,7 +23,7 @@ export default function Upload({ onUploadComplete }) {
             const zippedFile = new File([zippedBlob], "spotify-files.zip", {
                 type: "application/zip",
             });
-            formData.append("files", zippedFile);
+            formData.append("file", zippedFile);
 
             const res = await axios.post("/api/upload", formData, {
                 headers: {
@@ -55,7 +55,7 @@ export default function Upload({ onUploadComplete }) {
             <p>Inside this folder is a bunch of json files that are virtually useless on their own. Messy data that is not very readable, and that isn't compiled in any way.</p>
             <h4>That's where this app comes in handy! Upload the entire folder below and we'll do the rest.</h4>
 
-            <input type="file" webkitdirectory="true" directory="true" multiple onChange={handleFileChange} />
+            <input type="file" accept=".zip" onChange={handleFileChange} />
             {error && <p style={{ color: 'red' }}>{error}</p>}
         </div>
     );

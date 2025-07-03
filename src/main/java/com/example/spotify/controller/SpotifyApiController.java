@@ -1,5 +1,4 @@
 package com.example.spotify.controller;
-
 import com.example.spotify.DataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,15 +10,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
-import java.nio.file.StandardCopyOption;
-
-
+import java.io.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
-
 import java.util.Map;
 
 @RestController
@@ -128,51 +122,68 @@ public class SpotifyApiController {
 
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFiles(@RequestParam("files") MultipartFile[] files) {
+    public ResponseEntity<String> handleUpload(@RequestParam("file") MultipartFile zipFile) {
+        if (zipFile.isEmpty() || !zipFile.getOriginalFilename().endsWith(".zip")) {
+            return ResponseEntity.badRequest().body("Invalid zip file.");
+        }
+
         try {
-            String sessionId = UUID.randomUUID().toString();
-            Path sessionDir = Paths.get(System.getProperty("java.io.tmpdir"), "spotify", sessionId);
-            Files.createDirectories(sessionDir);
+            Path tempDir = Files.createTempDirectory("spotify");
+            File zipPath = Files.createTempFile(tempDir, "uploaded-", ".zip").toFile();
+            zipFile.transferTo(zipPath);
 
-            for (MultipartFile file : files) {
-                String filename = file.getOriginalFilename();
-                if (filename != null && filename.toLowerCase().endsWith(".zip")) {
-                    // Unzip the uploaded file into the sessionDir
-                    try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
-                        ZipEntry zipEntry;
-                        while ((zipEntry = zis.getNextEntry()) != null) {
-                            Path newFilePath = sessionDir.resolve(zipEntry.getName()).normalize();
+            unzip(zipPath, tempDir.toFile());
 
-                            // Prevent Zip Slip attacks
-                            if (!newFilePath.startsWith(sessionDir)) {
-                                throw new IOException("Bad zip entry: " + zipEntry.getName());
-                            }
+            dataService.loadSessionFolder(tempDir.toString());
 
-                            if (zipEntry.isDirectory()) {
-                                Files.createDirectories(newFilePath);
-                            } else {
-                                Files.createDirectories(newFilePath.getParent());
-                                Files.copy(zis, newFilePath, StandardCopyOption.REPLACE_EXISTING);
-                            }
-                            zis.closeEntry();
-                        }
-                    }
-                } else {
-                    // If it's not a zip, save as-is
-                    Path filePath = sessionDir.resolve(file.getOriginalFilename());
-                    Files.write(filePath, file.getBytes());
-                }
-            }
+            zipPath.delete();
 
-            System.out.println("Calling loadSessionFolder with: " + sessionDir.toString());
-            dataService.loadSessionFolder(sessionDir.toString());
-
-            return ResponseEntity.ok(sessionId);
+            return ResponseEntity.ok("Upload and processing complete.");
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("Failed to upload files.");
+            return ResponseEntity.status(500).body("Failed to process upload.");
         }
     }
+
+
+    private void unzip(File zipFile, File destDir) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                File newFile = new File(destDir, entry.getName());
+
+                if (entry.isDirectory()) {
+                    if (!newFile.mkdirs()) throw new IOException("Failed to create directory: " + newFile);
+                } else {
+                    File parent = newFile.getParentFile();
+                    if (!parent.exists() && !parent.mkdirs()) {
+                        throw new IOException("Failed to create directory: " + parent);
+                    }
+
+                    try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                        byte[] buffer = new byte[1024];
+                        int len;
+                        while ((len = zis.read(buffer)) > 0) {
+                            fos.write(buffer, 0, len);
+                        }
+                    }
+
+                    if (newFile.getName().toLowerCase().endsWith(".zip")) {
+                        File nestedDestDir = new File(newFile.getParentFile(), newFile.getName() + "_unzipped");
+                        if (!nestedDestDir.exists() && !nestedDestDir.mkdirs()) {
+                            throw new IOException("Failed to create directory for nested unzip: " + nestedDestDir);
+                        }
+                        unzip(newFile, nestedDestDir);
+
+                        if (!newFile.delete()) {
+                            System.err.println("Warning: Failed to delete nested zip file " + newFile.getAbsolutePath());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
 
 }
