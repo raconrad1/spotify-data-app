@@ -14,6 +14,13 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.text.DecimalFormat;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.InputStream;
+
 
 @Component
 public class DataService {
@@ -28,19 +35,29 @@ public class DataService {
         JSONArray res = new JSONArray();
         System.out.println("Collecting data from: " + folderPath);
 
+        ObjectMapper mapper = new ObjectMapper();
+        JsonFactory factory = mapper.getFactory();
+
         try {
             Files.walk(Paths.get(folderPath))
                     .filter(Files::isRegularFile)
                     .forEach(path -> {
                         String fileName = path.getFileName().toString().toLowerCase();
                         if (fileName.endsWith(".json") && fileName.contains("audio")) {
-                            try {
-                                String content = new String(Files.readAllBytes(path));
-                                System.out.println("Parsing: " + fileName);
+                            System.out.println("Parsing: " + fileName);
+                            try (InputStream in = Files.newInputStream(path);
+                                 JsonParser parser = factory.createParser(in)) {
 
-                                JSONArray jsonArray = new JSONArray(content);
-                                for (int i = 0; i < jsonArray.length(); i++) {
-                                    res.put(jsonArray.getJSONObject(i));
+                                // Expecting an array start token
+                                if (parser.nextToken() != JsonToken.START_ARRAY) {
+                                    System.err.println("Expected JSON array in file: " + fileName);
+                                    return;
+                                }
+
+                                // Iterate through each element in array
+                                while (parser.nextToken() != JsonToken.END_ARRAY) {
+                                    ObjectNode node = mapper.readTree(parser);
+                                    res.put(new org.json.JSONObject(node.toString()));
                                 }
                             } catch (Exception e) {
                                 System.err.println("Failed to parse " + fileName + ": " + e.getMessage());
@@ -54,6 +71,7 @@ public class DataService {
         System.out.println("Total entries loaded: " + res.length());
         return res;
     }
+
 
 
 
