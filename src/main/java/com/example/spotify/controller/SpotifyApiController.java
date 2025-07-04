@@ -113,13 +113,11 @@ public class SpotifyApiController {
         return ResponseEntity.ok(topDays);
     }
 
-
     @GetMapping("/top-years")
     public ResponseEntity<Map<String, DataService.YearlyStats>> getTopYears() {
         Map<String, DataService.YearlyStats> topYears = dataService.getTopYears();
         return ResponseEntity.ok(topYears);
     }
-
 
     @PostMapping("/upload")
     public ResponseEntity<String> handleUpload(@RequestParam("file") MultipartFile zipFile) {
@@ -145,15 +143,30 @@ public class SpotifyApiController {
         }
     }
 
-
     private void unzip(File zipFile, File destDir) throws IOException {
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                File newFile = new File(destDir, entry.getName());
+                String entryName = entry.getName();
+
+                // Skip macOS metadata entries
+                if (entryName.startsWith("__MACOSX") || entryName.startsWith("._")) {
+                    continue;
+                }
+
+                // Sanitize name to avoid invalid characters
+                String safeName = entryName.replace(":", "-").replaceAll("[^\\w\\-./ ]", "").trim();
+                File newFile = new File(destDir, safeName).getCanonicalFile();
+
+                // Prevent zip slip
+                if (!newFile.getPath().startsWith(destDir.getCanonicalPath())) {
+                    throw new IOException("Entry is outside of target dir: " + entryName);
+                }
 
                 if (entry.isDirectory()) {
-                    if (!newFile.mkdirs()) throw new IOException("Failed to create directory: " + newFile);
+                    if (!newFile.exists() && !newFile.mkdirs()) {
+                        throw new IOException("Failed to create directory: " + newFile);
+                    }
                 } else {
                     File parent = newFile.getParentFile();
                     if (!parent.exists() && !parent.mkdirs()) {
@@ -168,6 +181,7 @@ public class SpotifyApiController {
                         }
                     }
 
+                    // Handle nested zip
                     if (newFile.getName().toLowerCase().endsWith(".zip")) {
                         File nestedDestDir = new File(newFile.getParentFile(), newFile.getName() + "_unzipped");
                         if (!nestedDestDir.exists() && !nestedDestDir.mkdirs()) {
@@ -183,7 +197,4 @@ public class SpotifyApiController {
             }
         }
     }
-
-
-
 }

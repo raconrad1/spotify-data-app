@@ -43,7 +43,7 @@ public class DataService {
                     .filter(Files::isRegularFile)
                     .forEach(path -> {
                         String fileName = path.getFileName().toString().toLowerCase();
-                        if (fileName.endsWith(".json") && fileName.contains("audio")) {
+                        if (fileName.endsWith(".json") && fileName.contains("audio") && !fileName.startsWith("._")) {
                             System.out.println("Parsing: " + fileName);
                             try (InputStream in = Files.newInputStream(path);
                                  JsonParser parser = factory.createParser(in)) {
@@ -71,8 +71,6 @@ public class DataService {
         System.out.println("Total entries loaded: " + res.length());
         return res;
     }
-
-
 
 
     //    Methods used in SpotifyApiController.java
@@ -494,7 +492,6 @@ public class DataService {
         }
     }
 
-
     public Map<String, DailyStats> getTopDays() {
         Map<String, DailyStats> map = new LinkedHashMap<>();
         for (int i = 0; i < this.cachedData.length(); i++) {
@@ -608,47 +605,5 @@ public class DataService {
             }
         }
         return map;
-    }
-
-    public static JSONArray singleSongData(JSONArray array, String track) {
-        JSONArray res = new JSONArray();
-
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject obj = array.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String entryTrack = entry.getTrackName();
-            if (entryTrack != null && entryTrack.equalsIgnoreCase(track)) {
-                res.put(obj);
-            }
-        }
-        return res;
-    }
-
-    public static JSONArray singleAlbumData(JSONArray array, String album) {
-        JSONArray res = new JSONArray();
-
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject obj = array.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String entryAlbum = entry.getAlbumName();
-            if (entryAlbum != null && entryAlbum.equalsIgnoreCase(album)) {
-                res.put(obj);
-            }
-        }
-        return res;
-    }
-
-    public static JSONArray singleArtistData(JSONArray array, String artist) {
-        JSONArray res = new JSONArray();
-
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject obj = array.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String entryArtist = entry.getArtistName();
-            if (entryArtist != null && entryArtist.equalsIgnoreCase(artist)) {
-                res.put(obj);
-            }
-        }
-        return res;
     }
 }
