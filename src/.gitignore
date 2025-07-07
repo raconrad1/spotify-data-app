@@ -19,3 +19,8 @@ pom.xml
 /target/
 /out/
 /build-and-deploy.sh
+/.DS_Store
+main/libs
+main/resources/static/assets
+main/resources/static/vite.svg
+main/resources/application.properties

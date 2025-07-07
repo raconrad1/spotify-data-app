@@ -1,0 +1,26 @@
+.idea
+/out
+/target
+build-and-deploy.sh
+pom.xml
+Procfile
+spotify-data-app.iml
+your-project-name.iml
+
+# Java
+target/
+*.class
+*.jar
+*.war
+
+# Spotify Data
+*.json
+*.csv
+data/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
