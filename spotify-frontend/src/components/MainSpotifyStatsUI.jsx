@@ -63,45 +63,46 @@ const StyledRow = styled(Box)(({ theme }) => ({
     borderBottom: '1px solid #e0e0e0',
 }));
 
-function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalStreamsData, totalSkipsData, totalMusicTimeData, totalPodcastTimeData, shufflePercentData, firstTrackEverData, totalRoyaltiesData }) {
-    const totalEntriesContent = totalEntriesData ? (
-        <p>Total entries: {addNumberCommas(totalEntriesData)}</p>
+function GeneralStats({ generalStatsData, firstTrackEverData }) {
+
+    const totalEntriesContent = generalStatsData ? (
+        <p>Total entries: {addNumberCommas(generalStatsData.totalEntries)}</p>
     ) : (
         <p>Loading total entries...</p>
     )
 
-    const totalStreamsContent = totalStreamsData ? (
-        <p>Total streams: {addNumberCommas(totalStreamsData)}</p>
+    const totalStreamsContent = generalStatsData ? (
+        <p>Total streams: {addNumberCommas(generalStatsData.totalStreams)}</p>
     ) : (
         <p>Loading total streams...</p>
     )
 
-    const totalUniqueEntriesContent = totalUniqueEntriesData ? (
-        <p>Total unique tracks played: {addNumberCommas(totalUniqueEntriesData)}</p>
+    const totalUniqueEntriesContent = generalStatsData ? (
+        <p>Total unique tracks played: {addNumberCommas(generalStatsData.totalUniqueStreams)}</p>
     ) : (
         <p>Loading total unique tracks played...</p>
     )
 
-    const totalSkipsContent = totalSkipsData ? (
-        <p>Total tracks skipped: {addNumberCommas(totalSkipsData)}</p>
+    const totalSkipsContent = generalStatsData ? (
+        <p>Total tracks skipped: {addNumberCommas(generalStatsData.totalSkippedTracks)}</p>
     ) : (
         <p>Loading total skips...</p>
     )
 
-    const totalMusicTimeContent = totalMusicTimeData ? (
-        <p>You've listened to music for {addNumberCommas(totalMusicTimeData["minutes"])} minutes, which is {addNumberCommas(totalMusicTimeData["hours"])} hours, or {addNumberCommas(totalMusicTimeData["days"])} days.</p>
+    const totalMusicTimeContent = generalStatsData?.totalMusicTime ? (
+        <p>You've listened to music for {addNumberCommas(generalStatsData.totalMusicTime.minutes)} minutes, which is {addNumberCommas(generalStatsData.totalMusicTime.hours)} hours, or {addNumberCommas(generalStatsData.totalMusicTime.days)} days.</p>
     ) : (
         <p>Loading total time listened to music...</p>
     )
 
-    const totalPodcastTimeContent = totalPodcastTimeData ? (
-        <p>You've listened to podcasts for {addNumberCommas(totalPodcastTimeData["minutes"])} minutes, which is {addNumberCommas(totalPodcastTimeData["hours"])} hours, or {addNumberCommas(totalPodcastTimeData["days"])} days.</p>
+    const totalPodcastTimeContent = generalStatsData?.totalPodcastTime ? (
+        <p>You've listened to podcasts for {addNumberCommas(generalStatsData.totalPodcastTime.minutes)} minutes, which is {addNumberCommas(generalStatsData.totalPodcastTime.hours)} hours, or {addNumberCommas(generalStatsData.totalPodcastTime.days)} days.</p>
     ) : (
         <p>Loading total time listened to podcasts...</p>
     )
 
-    const shufflePercentContent = shufflePercentData ? (
-        <p>{shufflePercentData}% of the time you are listening to music on shuffle.</p>
+    const shufflePercentContent = generalStatsData ? (
+        <p>{generalStatsData.percentageTimeShuffled}% of the time you are listening to music on shuffle.</p>
     ) : (
         <p>Loading shuffle percent...</p>
     )
@@ -112,8 +113,8 @@ function GeneralStats({ totalEntriesData, totalUniqueEntriesData, totalStreamsDa
         <p>Loading first track ever...</p>
     )
 
-    const totalRoyaltiesContent = totalRoyaltiesData ? (
-        <p>On Spotify, artists earn an average of $0.004 per stream. That means you have contributed approximately <b>${totalRoyaltiesData}</b> to artists through your listening. However, this estimate assumes that artists receive the full amount, which often isn't the case - most labels take a significant share of the streaming revenue.</p>
+    const totalRoyaltiesContent = generalStatsData ? (
+        <p>On Spotify, artists earn an average of $0.004 per stream. That means you have contributed approximately <b>${generalStatsData.totalArtistRevenue}</b> to artists through your listening. However, this estimate assumes that artists receive the full amount, which often isn't the case - most labels take a significant share of the streaming revenue.</p>
     ) : (
         <p>Loading total revenue to artists...</p>
     )
@@ -438,16 +439,9 @@ export default function App() {
     const [tracksData, setTracksData] = useState(null)
     const [artistData, setArtistData] = useState(null)
     const [albumData, setAlbumData]  = useState(null)
-    const [totalEntriesData, setTotalEntriesData] = useState(null)
-    const [totalUniqueEntriesData, setTotalUniqueEntriesData] = useState(null)
-    const [totalStreamsData, setTotalStreamsData] = useState(null)
-    const [totalSkipsData, setTotalSkipsData] = useState(null)
-    const [totalMusicTimeData, setTotalMusicTimeData] = useState(null)
-    const [totalPodcastTimeData, setTotalPodcastTimeData] = useState(null)
-    const [shufflePercentData, setShufflePercentData] = useState(null)
+    const [generalStatsData, setGeneralStatsData] = useState(null)
     const [firstTrackEverData, setFirstTrackEverData] = useState(null)
     const [topPodcastsData, setTopPodcastsData] = useState(null)
-    const [totalRoyaltiesData, setTotalRoyaltiesData] = useState(null)
     const [topYearsData, setTopYearsData] = useState(null)
     const [topDaysData, setTopDaysData] = useState(null)
 
@@ -460,32 +454,18 @@ export default function App() {
                     trackStats,
                     artistStats,
                     albumStats,
-                    totalEntries,
-                    totalUniqueEntries,
-                    totalStreams,
-                    totalSkips,
-                    totalMusicTime,
-                    totalPodcastTime,
-                    shufflePercent,
+                    generalStats,
                     firstTrack,
                     topPodcasts,
-                    totalRoyalties,
                     topYears,
                     topDays
                 ] = await Promise.all([
                     axios.get('/api/track-stats'),
                     axios.get('/api/artist-stats'),
                     axios.get('/api/album-stats'),
-                    axios.get('/api/total-entries'),
-                    axios.get('/api/total-unique-entries'),
-                    axios.get('/api/total-streams'),
-                    axios.get('/api/total-skipped-tracks'),
-                    axios.get('/api/total-music-time'),
-                    axios.get('/api/total-podcast-time'),
-                    axios.get('/api/percentage-time-shuffled'),
+                    axios.get('/api/general-stats'),
                     axios.get('/api/first-track-ever'),
                     axios.get('/api/top-podcasts'),
-                    axios.get('/api/total-royalties'),
                     axios.get('/api/top-years'),
                     axios.get('/api/top-days')
                 ])
@@ -493,16 +473,9 @@ export default function App() {
                 setTracksData(trackStats.data)
                 setArtistData(artistStats.data)
                 setAlbumData(albumStats.data)
-                setTotalEntriesData(totalEntries.data)
-                setTotalUniqueEntriesData(totalUniqueEntries.data)
-                setTotalStreamsData(totalStreams.data)
-                setTotalSkipsData(totalSkips.data)
-                setTotalMusicTimeData(totalMusicTime.data)
-                setTotalPodcastTimeData(totalPodcastTime.data)
-                setShufflePercentData(shufflePercent.data)
+                setGeneralStatsData(generalStats.data)
                 setFirstTrackEverData(firstTrack.data)
                 setTopPodcastsData(topPodcasts.data)
-                setTotalRoyaltiesData(totalRoyalties.data)
                 setTopYearsData(topYears.data)
                 setTopDaysData(topDays.data)
             } catch (err) {
@@ -519,15 +492,8 @@ export default function App() {
             <h2>General Stats</h2>
             <p><b>Note:</b> Spotify considers a <b>stream</b> as a track that was played for 30 seconds or more.</p>
             <GeneralStats
-                totalEntriesData={totalEntriesData}
-                totalStreamsData={totalStreamsData}
-                totalUniqueEntriesData={totalUniqueEntriesData}
-                totalSkipsData={totalSkipsData}
-                totalMusicTimeData={totalMusicTimeData}
-                totalPodcastTimeData={totalPodcastTimeData}
-                shufflePercentData={shufflePercentData}
+                generalStatsData={generalStatsData}
                 firstTrackEverData={firstTrackEverData}
-                totalRoyaltiesData={totalRoyaltiesData}
             />
             <br/>
             <h2>Top Stats of All Time</h2>

@@ -1,7 +1,5 @@
 package com.example.spotify;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import com.example.spotify.model.SpotifyPlaybackEntry;
 import com.example.spotify.util.SpotifyParser;
@@ -20,20 +18,27 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.function.Consumer;
 
 
 @Component
 public class DataService {
 
-    private JSONArray cachedData;
+    private String currentSessionFolder;
 
     public void loadSessionFolder(String folderPath) {
-        this.cachedData = collectExtendedData(folderPath);
+        this.currentSessionFolder = folderPath;
     }
 
-    private JSONArray collectExtendedData(String folderPath) {
-        JSONArray res = new JSONArray();
-        System.out.println("Collecting data from: " + folderPath);
+    public String getCurrentSessionFolder() {
+        return this.currentSessionFolder;
+    }
+
+    public static void processSessionFolder(String folderPath, Consumer<SpotifyPlaybackEntry> entryConsumer) {
+        if (folderPath == null) {
+            throw new IllegalArgumentException("folderPath is null");
+        }
 
         ObjectMapper mapper = new ObjectMapper();
         JsonFactory factory = mapper.getFactory();
@@ -41,103 +46,51 @@ public class DataService {
         try {
             Files.walk(Paths.get(folderPath))
                     .filter(Files::isRegularFile)
-                    .forEach(path -> {
-                        String fileName = path.getFileName().toString().toLowerCase();
-                        if (fileName.endsWith(".json") && fileName.contains("audio") && !fileName.startsWith("._")) {
-                            System.out.println("Parsing: " + fileName);
-                            try (InputStream in = Files.newInputStream(path);
-                                 JsonParser parser = factory.createParser(in)) {
-
-                                // Expecting an array start token
-                                if (parser.nextToken() != JsonToken.START_ARRAY) {
-                                    System.err.println("Expected JSON array in file: " + fileName);
-                                    return;
-                                }
-
-                                // Iterate through each element in array
-                                while (parser.nextToken() != JsonToken.END_ARRAY) {
-                                    ObjectNode node = mapper.readTree(parser);
-                                    res.put(new org.json.JSONObject(node.toString()));
-                                }
-                            } catch (Exception e) {
-                                System.err.println("Failed to parse " + fileName + ": " + e.getMessage());
-                            }
-                        }
-                    });
+                    .forEach(path -> parseFile(path, factory, mapper, entryConsumer));
         } catch (IOException e) {
             System.err.println("Error walking folder: " + e.getMessage());
         }
-
-        System.out.println("Total entries loaded: " + res.length());
-        return res;
     }
 
+    private static void parseFile(Path path, JsonFactory factory, ObjectMapper mapper, Consumer<SpotifyPlaybackEntry> entryConsumer) {
+        String fileName = path.getFileName().toString().toLowerCase();
+        if (!fileName.endsWith(".json") || !fileName.contains("audio") || fileName.startsWith("._")) return;
 
-    //    Methods used in SpotifyApiController.java
-    public Integer getTotalEntries() {
-        return this.cachedData.length();
-    }
+        System.out.println("Parsing: " + fileName);
 
-    public Integer getTotalStreams() {
-        int totalStreams = 0;
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String track = entry.getTrackName();
-            int ms = entry.getMsPlayed();
-            if (track != null && ms >= 30000) {
-                totalStreams++;
+        try (InputStream in = Files.newInputStream(path);
+             JsonParser parser = factory.createParser(in)) {
+
+            if (parser.nextToken() != JsonToken.START_ARRAY) {
+                System.err.println("Expected JSON array in file: " + fileName);
+                return;
             }
-        }
-        return totalStreams;
-    }
 
-    public Integer getTotalUniqueEntries() {
-        Set<String> uniqueTracks = new HashSet<String>();
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String track = entry.getTrackName();
-            uniqueTracks.add(track);
-        }
-        return uniqueTracks.size();
-    }
-
-    public Integer getTotalSkippedTracks() {
-        Map<String, Integer> map = new LinkedHashMap<>();
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String artist = entry.getArtistName();
-            int msPlayed = entry.getMsPlayed();
-            if (artist != null && msPlayed >= 5000) {
-                    map.put(artist, map.getOrDefault(artist, 0) + 1);
+            while (parser.nextToken() != JsonToken.END_ARRAY) {
+                ObjectNode node = mapper.readTree(parser);
+                SpotifyPlaybackEntry entry = SpotifyParser.fromJson(new org.json.JSONObject(node.toString()));
+                entryConsumer.accept(entry);
             }
+
+        } catch (Exception e) {
+            System.err.println("Failed to parse " + fileName + ": " + e.getMessage());
         }
-        int res = map.values().stream().mapToInt(Integer::intValue).sum();
-        return res;
     }
 
-    public Map<String, Integer> getTotalMusicTime() {
-        Map<String, Integer> map = new LinkedHashMap<>();
-        int ms = 0;
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String track = entry.getTrackName();
-            if (track != null) {
-                int msPlayed = entry.getMsPlayed();
-                ms += msPlayed;
-            }
-        }
+    private Map<String, Integer> convertMillisToTimeMap(int ms) {
         int minutes = ms / 60000;
         int hours = minutes / 60;
         int days = hours / 24;
-        map.put("minutes", minutes);
-        map.put("hours", hours);
-        map.put("days", days);
-        return map;
+
+        Map<String, Integer> timeMap = new HashMap<>();
+        timeMap.put("minutes", minutes);
+        timeMap.put("hours", hours);
+        timeMap.put("days", days);
+
+        return timeMap;
     }
+
+    //    Methods used in SpotifyApiController.java
 
     public static class TrackStats {
         String trackName;
@@ -174,30 +127,30 @@ public class DataService {
         public List<SpotifyPlaybackEntry> getPlaybackHistory() { return playbackHistory; }
     }
 
-    public Map<String, TrackStats> getTrackStatsMap() {
+    public Map<String, TrackStats> getTrackStatsMap(String folderPath) {
         Map<String, TrackStats> map = new LinkedHashMap<>();
 
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+        processSessionFolder(folderPath, entry -> {
             String track = entry.getTrackName();
             String artist = entry.getArtistName();
             String playedAt = entry.getTimestamp();
             int ms = entry.getMsPlayed();
 
-            if (track == null || artist == null) continue;
+            if (track == null || artist == null) return;
 
-            map.putIfAbsent(track, new TrackStats(track, artist, playedAt, entry));
-            TrackStats stats = map.get(track);
+            String key = track + " - " + artist;
+
+            map.putIfAbsent(key, new TrackStats(track, artist, playedAt, null));
+            TrackStats stats = map.get(key);
 
             if (ms >= 30000) {
-                stats.addStream(playedAt, entry);
+                stats.addStream(playedAt, null);
             }
 
             if (entry.isSkipped()) {
                 stats.incrementSkip();
             }
-        }
+        });
 
         return map;
     }
@@ -242,30 +195,27 @@ public class DataService {
         public List<String> getUniqueStreamsSeen() { return uniqueStreamsSeen; }
     }
 
-    public Map<String, ArtistStats> getArtistStatsMap() {
+    public Map<String, ArtistStats> getArtistStatsMap(String folderPath) {
         Map<String, ArtistStats> map = new LinkedHashMap<>();
 
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+        processSessionFolder(folderPath, entry -> {
             String artist = entry.getArtistName();
             String playedAt = entry.getTimestamp();
             int ms = entry.getMsPlayed();
 
-            if (artist == null) continue;
+            if (artist != null) {
+                map.putIfAbsent(artist, new ArtistStats(artist, playedAt, entry));
+                ArtistStats stats = map.get(artist);
 
-            map.putIfAbsent(artist, new ArtistStats(artist, playedAt, entry));
-            ArtistStats stats = map.get(artist);
+                if (ms >= 30000) {
+                    stats.addStream(playedAt, entry);
+                }
 
-            if (ms >= 30000) {
-                stats.addStream(playedAt, entry);
+                if (entry.isSkipped()) {
+                    stats.incrementSkip();
+                }
             }
-
-            if (entry.isSkipped()) {
-                stats.incrementSkip();
-            }
-        }
-
+        });
         return map;
     }
 
@@ -308,146 +258,167 @@ public class DataService {
         public List<SpotifyPlaybackEntry> getPlaybackHistory() { return playbackHistory; }
     }
 
-    public Map<String, AlbumStats> getAlbumStatsMap() {
+    public Map<String, AlbumStats> getAlbumStatsMap(String folderPath) {
         Map<String, AlbumStats> map = new LinkedHashMap<>();
 
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+        processSessionFolder(folderPath, entry -> {
             String album = entry.getAlbumName();
             String artist = entry.getArtistName();
             String playedAt = entry.getTimestamp();
             int ms = entry.getMsPlayed();
 
-            if (artist == null) continue;
+            if (album != null) {
+                map.putIfAbsent(album, new AlbumStats(album, artist, playedAt, entry));
+                AlbumStats stats = map.get(album);
 
-            map.putIfAbsent(album, new AlbumStats(album, artist, playedAt, entry));
-            AlbumStats stats = map.get(album);
+                if (ms >= 30000) {
+                    stats.addStream(ms, playedAt, entry);
+                }
 
-            if (ms >= 30000) {
-                stats.addStream(ms, playedAt, entry);
+                if (entry.isSkipped()) {
+                    stats.incrementSkip();
+                }
             }
-
-            if (entry.isSkipped()) {
-                stats.incrementSkip();
-            }
-        }
-
+        });
         return map;
     }
 
-    public Integer getPercentageTimeShuffled() {
-        int tracksOnShuffle = 0;
-        int totalTracks = this.cachedData.length();
+    public static class GeneralStats {
+        int totalEntries;
+        int totalStreams;
+        int totalUniqueStreams;
+        int totalSkippedTracks;
+        int percentageTimeShuffled;
+        Map<String, Integer> totalMusicTime;
+        Map<String, Integer> totalPodcastTime;
+        String totalArtistRevenue;
 
-        for (int i = 0; i < totalTracks; i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i); // use 'i', not '0'
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            if (entry.isShuffle()) {
-                tracksOnShuffle++;
-            }
+        public GeneralStats(int totalEntries, int totalStreams, int totalUniqueStreams, int totalSkippedTracks, Map<String, Integer> totalMusicTime, int percentageTimeShuffled, Map<String, Integer> totalPodcastTime, String totalArtistRevenue) {
+            this.totalEntries = totalEntries;
+            this.totalStreams = totalStreams;
+            this.totalUniqueStreams = totalUniqueStreams;
+            this.totalSkippedTracks = totalSkippedTracks;
+            this.totalMusicTime = totalMusicTime;
+            this.percentageTimeShuffled = percentageTimeShuffled;
+            this.totalPodcastTime = totalPodcastTime;
+            this.totalArtistRevenue = totalArtistRevenue;
         }
 
-        if (totalTracks == 0) return 0;
-
-        double percentage = ((double) tracksOnShuffle / totalTracks) * 100;
-        return (int) Math.round(percentage);
+        public int getTotalEntries() { return totalEntries; }
+        public int getTotalStreams() { return totalStreams; }
+        public int getTotalUniqueStreams() { return totalUniqueStreams; }
+        public int getTotalSkippedTracks() { return totalSkippedTracks; }
+        public int getPercentageTimeShuffled() { return percentageTimeShuffled; }
+        public Map<String, Integer> getTotalMusicTime() { return totalMusicTime; }
+        public Map<String, Integer> getTotalPodcastTime() { return totalPodcastTime; }
+        public String getTotalArtistRevenue() { return totalArtistRevenue; }
     }
 
-    public Map<String, Integer> getTotalPodcastTime() {
-        Map<String, Integer> map = new LinkedHashMap<>();
-        int ms = 0;
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String podcast = entry.getPodcastName();
-            if (podcast != null) {
-                int msPlayed = entry.getMsPlayed();
-                ms += msPlayed;
+    public GeneralStats getGeneralStats(String folderPath) {
+        int[] totalEntries = {0};
+        int[] totalStreams = {0};
+        int[] totalSkippedTracks = {0};
+        int[] totalMusicTime = {0};
+        int[] totalPodcastTime = {0};
+        int[] tracksOnShuffle = {0};
+        Set<String> uniqueTracks = new HashSet<>();
+
+        processSessionFolder(folderPath, entry -> {
+            if (entry.getTrackName() != null) {
+                totalEntries[0]++;
+                totalMusicTime[0] += entry.getMsPlayed();
+                if (entry.isShuffle()) {
+                    tracksOnShuffle[0]++;
+                }
             }
-        }
-        int minutes = ms / 60000;
-        int hours = minutes / 60;
-        int days = hours / 24;
-        map.put("minutes", minutes);
-        map.put("hours", hours);
-        map.put("days", days);
-        return map;
+            if (entry.getTrackName() != null && entry.getMsPlayed() >= 30000) {
+                totalStreams[0]++;
+                uniqueTracks.add(entry.getTrackName());
+            }
+            if (entry.getTrackName() != null && entry.getMsPlayed() <= 5000 && entry.isSkipped()) {
+                totalSkippedTracks[0]++;
+            }
+            if (entry.getPodcastName() != null) {
+                totalPodcastTime[0] += entry.getMsPlayed();
+            }
+        });
+        int percentageTimeShuffled = totalEntries[0] == 0 ? 0 : (int) Math.round(((double) tracksOnShuffle[0] / totalEntries[0]) * 100);
+        int totalUniqueStreams = uniqueTracks.size();
+
+//      Total Artist Revenue Logic
+        float totalStreamsFloat = (float) totalStreams[0];
+        DecimalFormat df = new DecimalFormat("#.00");
+        double royalties = totalStreamsFloat * 0.004;
+        String totalArtistRevenue = df.format(royalties);
+
+        Map<String, Integer> totalMusicTimeMap = convertMillisToTimeMap(totalMusicTime[0]);
+        Map<String, Integer> totalPodcastTimeMap = convertMillisToTimeMap(totalPodcastTime[0]);
+
+        return new GeneralStats(
+                totalEntries[0],
+                totalStreams[0],
+                totalUniqueStreams,
+                totalSkippedTracks[0],
+                totalMusicTimeMap,
+                percentageTimeShuffled,
+                totalPodcastTimeMap,
+                totalArtistRevenue
+        );
     }
 
-    public Map<String, Integer> getTopPodcastsByPlays() {
+    public Map<String, Integer> getTopPodcastsByPlays(String folderPath) {
         Map<String, Integer> map = new LinkedHashMap<>();
 
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+        processSessionFolder(folderPath, entry -> {
             String podcast = entry.getPodcastName();
             if (podcast != null) {
                 map.put(podcast, map.containsKey(podcast) ? map.get(podcast) + 1 : 1);
             }
-        }
+        });
         return map;
     }
 
-    public Map<String, String> getFirstTrackEver() {
+    public Map<String, String> getFirstTrackEver(String folderPath) {
         Map <String, String> map = new HashMap<>();
-        String firstTimeStamp = null;
-        String firstTrack = null;
-        String firstArtist = null;
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+        final String[] firstTimeStamp = {null};
+        final String[] firstTrack = {null};
+        final String[] firstArtist = {null};
 
+        processSessionFolder(folderPath, entry -> {
             String track = entry.getTrackName();
             String timeStamp = entry.getTimestamp();
             String artist = entry.getArtistName();
 
             if (track != null && timeStamp != null) {
-                if (firstTimeStamp == null) {
-                    firstTimeStamp = timeStamp;
-                    firstTrack = track;
-                    firstArtist = artist;
+                if (firstTimeStamp[0] == null) {
+                    firstTimeStamp[0] = timeStamp;
+                    firstTrack[0] = track;
+                    firstArtist[0] = artist;
                 } else {
-                    Instant earliest = Instant.parse(firstTimeStamp);
+                    Instant earliest = Instant.parse(firstTimeStamp[0]);
                     Instant current = Instant.parse(timeStamp);
                     if (current.isBefore(earliest)) {
-                        firstTrack = track;
-                        firstTimeStamp = timeStamp;
-                        firstArtist = artist;
+                        firstTrack[0] = track;
+                        firstTimeStamp[0] = timeStamp;
+                        firstArtist[0] = artist;
                     }
                 }
             }
-        }
-        if (firstTimeStamp == null || firstTrack == null || firstArtist == null) {
+        });
+        if (firstTimeStamp[0] == null || firstTrack[0] == null || firstArtist[0] == null) {
             map.put("track", "N/A");
             map.put("timeStamp", "N/A");
             map.put("artist", "N/A");
             return map;
         }
 
-        ZonedDateTime zdt = ZonedDateTime.parse(firstTimeStamp);
+        ZonedDateTime zdt = ZonedDateTime.parse(firstTimeStamp[0]);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy 'at' h:mm a");
         String readableTimeStamp = zdt.format(formatter);
-        map.put("track", firstTrack);
+        map.put("track", firstTrack[0]);
         map.put("timeStamp", readableTimeStamp);
-        map.put("artist", firstArtist);
+        map.put("artist", firstArtist[0]);
         return map;
-    }
-
-    public String getTotalArtistRevenue() {
-        float totalStreams = 0;
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            float msplayed = entry.getMsPlayed();
-            if (msplayed >= 30000) {
-                totalStreams++;
-            }
-        }
-        DecimalFormat df = new DecimalFormat("#.00");
-        double royalties = totalStreams * 0.004;
-        String formattedRoyalties = df.format(royalties);
-        return formattedRoyalties;
     }
 
     public static class DailyStats {
@@ -492,11 +463,10 @@ public class DataService {
         }
     }
 
-    public Map<String, DailyStats> getTopDays() {
+    public Map<String, DailyStats> getTopDays(String folderPath) {
         Map<String, DailyStats> map = new LinkedHashMap<>();
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+
+        processSessionFolder(folderPath, entry -> {
             String timeStamp = entry.getTimestamp();
             int ms = entry.getMsPlayed();
 
@@ -507,7 +477,7 @@ public class DataService {
                 DailyStats daily = map.computeIfAbsent(readableTimeStamp, k -> new DailyStats());
                 daily.addPlay(entry);
             }
-        }
+        });
         for (DailyStats dailyStats : map.values()) {
             dailyStats.finalizeStats();
         }
@@ -528,12 +498,11 @@ public class DataService {
         }
     }
 
-    public Map<String, YearlyStats> getTopYears () {
+    public Map<String, YearlyStats> getTopYears (String folderPath) {
         Map<String, YearlyStats> map = new LinkedHashMap<>();
         Set<String> songsSeen = new HashSet<>();
-        for (int i = 0; i < this.cachedData.length(); i++) {
-            JSONObject obj = this.cachedData.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
+
+        processSessionFolder(folderPath, entry -> {
             String timeStamp = entry.getTimestamp();
             int ms = entry.getMsPlayed();
             String track = entry.getSpotifyTrackUri();
@@ -545,65 +514,13 @@ public class DataService {
                 YearlyStats yearly = map.computeIfAbsent(year, k -> new YearlyStats());
                 if (songsSeen.contains(track)) {
                     yearly.addPlay(ms, false);
-                    continue;
+                } else {
+                    yearly.addPlay(ms, true);
+                    songsSeen.add(track);
                 }
-                yearly.addPlay(ms, true);
-                songsSeen.add(track);
             }
-        }
-        return map;
-    }
+        });
 
-
-
-//    Not used quite yet
-    public Map<String, Integer> getTopTimeListened() {
-    Map<String, Double> map = new LinkedHashMap<>();
-
-    for (int i = 0; i < this.cachedData.length(); i++) {
-        JSONObject obj = this.cachedData.getJSONObject(i);
-        SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-
-        String artist = entry.getArtistName();
-        if (artist != null) {
-            double hoursPlayed = entry.getMsPlayed() / 3600000.0;
-            map.put(artist, map.getOrDefault(artist, 0.0) + hoursPlayed);
-        }
-    }
-    return map.entrySet().stream()
-            .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    e -> (int) Math.round(e.getValue()),
-                    (e1, e2) -> e1,
-                    LinkedHashMap::new
-            ));
-}
-
-    public static Map<String, Integer> reasonStart(JSONArray array) {
-        Map<String, Integer> map = new LinkedHashMap<>();
-
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject obj = array.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String reason = entry.getReasonStart();
-            if (reason != null) {
-                map.put(reason, map.getOrDefault(reason, 0) + 1);
-            }
-        }
-        return map;
-    }
-
-    public static Map<String, Integer> reasonSkipped(JSONArray array) {
-        Map<String, Integer> map = new LinkedHashMap<>();
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject obj = array.getJSONObject(i);
-            SpotifyPlaybackEntry entry = SpotifyParser.fromJson(obj);
-            String reason_end = entry.getReasonEnd();
-            Boolean skipped = entry.isSkipped();
-            if (skipped) {
-                map.put(reason_end, map.getOrDefault(reason_end, 0) + 1);
-            }
-        }
         return map;
     }
 }
