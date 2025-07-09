@@ -7,10 +7,6 @@
 /dataSources/
 /dataSources.local.xml
 
-
-/spotify-data/
-/Spotify Extended Streaming History/
-
 .idea/
 ../.env
 /resources/
@@ -21,5 +17,4 @@
 /.DS_Store
 main/libs
 main/resources/static/assets
-main/resources/static/vite.svg
 main/resources/application.properties

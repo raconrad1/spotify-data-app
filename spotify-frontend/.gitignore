@@ -22,7 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-/public
-musical-note.png
-musical-note.svg
-musical-notes.svg
