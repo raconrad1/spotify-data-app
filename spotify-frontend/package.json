@@ -2,7 +2,6 @@
   "name": "spotify-frontend",
   "version": "1.0.0",
   "description": "",
-
   "main": "eslint.config.js",
   "dependencies": {
     "acorn": "^8.14.1",
@@ -10,6 +9,7 @@
     "ajv": "^6.12.6",
     "ansi-styles": "^4.3.0",
     "argparse": "^2.0.1",
+    "axios": "^1.10.0",
     "balanced-match": "^1.0.2",
     "brace-expansion": "^1.1.11",
     "browserslist": "^4.24.5",
@@ -106,7 +106,6 @@
     "yallist": "^3.1.1",
     "yocto-queue": "^0.1.0"
   },
-  "devDependencies": {},
   "scripts": {
     "dev": "vite",
     "build": "vite build",
