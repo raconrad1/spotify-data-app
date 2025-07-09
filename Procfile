@@ -1,1 +1,0 @@
-web: java -Dserver.port=$PORT -jar src/main/libs/spotify-data-app-1.0-SNAPSHOT.jar
