@@ -23,9 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 /public
-eslint.config.js
-vite.config.js
 musical-note.png
 musical-note.svg
 musical-notes.svg
-music.png
