@@ -8,7 +8,10 @@
     "build": "cd spotify-frontend && npm run build",
     "lint": "cd spotify-frontend && npm run lint",
     "preview": "cd spotify-frontend && npm run preview",
-    "heroku-postbuild": "cd spotify-frontend && npm install && npm run build && cp -r dist/* ../src/main/resources/static/"
+    "heroku-postbuild": "cd spotify-frontend && npm install --no-optional && npm run build && cp -r dist/* ../src/main/resources/static/"
+  },
+  "engines": {
+    "node": "18.x"
   },
   "dependencies": {
     "react": "^19.1.0",
