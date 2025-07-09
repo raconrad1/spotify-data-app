@@ -1,0 +1,7 @@
+{
+  "name": "spotify-data-app-root",
+  "version": "1.0.0",
+  "scripts": {
+    "heroku-postbuild": "cd src/spotify-frontend && npm install && npm run build && cp -r dist/* ../main/resources/static/"
+  }
+}
