@@ -16,4 +16,3 @@
 /build-and-deploy.sh
 /.DS_Store
 main/libs
-main/resources/application.properties
