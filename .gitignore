@@ -12,7 +12,6 @@ target/
 *.war
 
 # Spotify Data
-*.json
 *.csv
 data/
 
