@@ -1,7 +1,28 @@
 {
-  "name": "spotify-data-app-root",
-  "version": "1.0.0",
+  "name": "spotify-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "heroku-postbuild": "cd src/spotify-frontend && npm install && npm run build && cp -r dist/* ../main/resources/static/"
+    "dev": "cd spotify-frontend && npm run dev",
+    "build": "cd spotify-frontend && npm run build",
+    "lint": "cd spotify-frontend && npm run lint",
+    "preview": "cd spotify-frontend && npm run preview",
+    "heroku-postbuild": "cd spotify-frontend && npm install && npm run build && cp -r dist/* ../src/main/resources/static/"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "vite": "^6.3.5"
   }
 }
