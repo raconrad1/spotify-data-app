@@ -372,7 +372,7 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
                     <Tab value="3" label="Artists (Unique Streams)" />
                     <Tab value="4" label="Albums" />
                     <Tab value="5" label="Skipped Tracks" />
-                    <Tab value="6" label="No Skips" />
+                    <Tab value="6" label="No Skip" />
                     <Tab value="7" label="Podcasts" />
                     <Tab value="8" label="Yearly Stats" />
                     <Tab value="9" label="Days Most Listened" />
@@ -396,19 +396,19 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
                 </TabPanel>
 
                 <TabPanel value="4">
-                    <TabPanelContent description="These are the songs you've streamed the most, or they include your favorite tracks by this artist.">
+                    <TabPanelContent description="These are the albums you've streamed the most, or maybe they include your favorite tracks by this artist.">
                         {topAlbumsContent}
                     </TabPanelContent>
                 </TabPanel>
 
                 <TabPanel value="5">
-                    <TabPanelContent description="These are the songs on your playlists that you hate the most... or you've just skipped them the most... is there a correlation there?">
+                    <TabPanelContent description="Here are songs that you've skipped the most.">
                         {topSkippedContent}
                     </TabPanelContent>
                 </TabPanel>
 
                 <TabPanel value="6">
-                    <TabPanelContent description="Here are the songs you've listend to the most that you've NEVER skipped.">
+                    <TabPanelContent description="Your top songs that have zero skips.">
                         {topNoSkipsContent}
                     </TabPanelContent>
                 </TabPanel>
@@ -426,7 +426,7 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
                 </TabPanel>
 
                 <TabPanel value="9">
-                    <TabPanelContent description="Here are the days that you've streamed the most music.">
+                    <TabPanelContent description="Days that you've streamed the most music.">
                         {topDaysContent}
                     </TabPanelContent>
                 </TabPanel>
