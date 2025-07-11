@@ -92,6 +92,74 @@ public class DataService {
 
     //    Methods used in SpotifyApiController.java
 
+    public static class TopStatsCollector {
+        Map<String, TrackStats> trackStatsMap = new LinkedHashMap<>();
+        Map<String, ArtistStats> artistStatsMap = new LinkedHashMap<>();
+        Map<String, AlbumStats> albumStatsMap = new LinkedHashMap<>();
+        Map<String, Integer> podcastStatsMap = new LinkedHashMap<>();
+
+        public void processEntry(SpotifyPlaybackEntry entry) {
+            String track = entry.getTrackName();
+            String artist = entry.getArtistName();
+            String album = entry.getAlbumName();
+            String playedAt = entry.getTimestamp();
+            int ms = entry.getMsPlayed();
+            String podcast = entry.getPodcastName();
+
+
+            if (track != null || artist != null) {
+
+                // TrackStats
+                String trackKey = track + " - " + artist;
+                trackStatsMap.putIfAbsent(trackKey, new TrackStats(track, artist, playedAt, entry));
+                TrackStats trackStats = trackStatsMap.get(trackKey);
+                if (ms >= 30000) {
+                    trackStats.addStream(playedAt, entry);
+                }
+                if (entry.isSkipped()) {
+                    trackStats.incrementSkip();
+                }
+
+                // ArtistStats
+                artistStatsMap.putIfAbsent(artist, new ArtistStats(artist, playedAt, entry));
+                ArtistStats artistStats = artistStatsMap.get(artist);
+                if (ms >= 30000) {
+                    artistStats.addStream(playedAt, entry);
+                }
+                if (entry.isSkipped()) {
+                    artistStats.incrementSkip();
+                }
+
+                // AlbumStats
+                String albumKey = album + " - " + artist;
+                albumStatsMap.putIfAbsent(albumKey, new AlbumStats(album, artist, playedAt, entry));
+                AlbumStats albumStats = albumStatsMap.get(albumKey);
+                if (ms >= 30000) {
+                    albumStats.addStream(ms, playedAt, entry);
+                }
+                if (entry.isSkipped()) {
+                    albumStats.incrementSkip();
+                }
+
+            } else if (podcast != null) {
+                podcastStatsMap.put(podcast, podcastStatsMap.containsKey(podcast) ? podcastStatsMap.get(podcast) + 1 : 1);
+            }
+        }
+
+        public Map<String, TrackStats> getTrackStats() { return trackStatsMap; }
+        public Map<String, ArtistStats> getArtistStats() { return artistStatsMap; }
+        public Map<String, AlbumStats> getAlbumStats() { return albumStatsMap; }
+        public Map<String, Integer> getPodcastStats() { return podcastStatsMap; }
+    }
+
+    public TopStatsCollector getTopStats(String folderPath) {
+        TopStatsCollector aggregator = new TopStatsCollector();
+
+        processSessionFolder(folderPath, aggregator::processEntry);
+
+        return aggregator;
+    }
+
     public static class TrackStats {
         String trackName;
         String artist;
@@ -125,34 +193,6 @@ public class DataService {
         public int getSkipCount() { return skipCount; }
         public String getFirstPlayedDate() { return firstPlayedDate; }
         public List<SpotifyPlaybackEntry> getPlaybackHistory() { return playbackHistory; }
-    }
-
-    public Map<String, TrackStats> getTrackStatsMap(String folderPath) {
-        Map<String, TrackStats> map = new LinkedHashMap<>();
-
-        processSessionFolder(folderPath, entry -> {
-            String track = entry.getTrackName();
-            String artist = entry.getArtistName();
-            String playedAt = entry.getTimestamp();
-            int ms = entry.getMsPlayed();
-
-            if (track == null || artist == null) return;
-
-            String key = track + " - " + artist;
-
-            map.putIfAbsent(key, new TrackStats(track, artist, playedAt, null));
-            TrackStats stats = map.get(key);
-
-            if (ms >= 30000) {
-                stats.addStream(playedAt, null);
-            }
-
-            if (entry.isSkipped()) {
-                stats.incrementSkip();
-            }
-        });
-
-        return map;
     }
 
     public static class ArtistStats {
@@ -195,30 +235,6 @@ public class DataService {
         public List<String> getUniqueStreamsSeen() { return uniqueStreamsSeen; }
     }
 
-    public Map<String, ArtistStats> getArtistStatsMap(String folderPath) {
-        Map<String, ArtistStats> map = new LinkedHashMap<>();
-
-        processSessionFolder(folderPath, entry -> {
-            String artist = entry.getArtistName();
-            String playedAt = entry.getTimestamp();
-            int ms = entry.getMsPlayed();
-
-            if (artist != null) {
-                map.putIfAbsent(artist, new ArtistStats(artist, playedAt, entry));
-                ArtistStats stats = map.get(artist);
-
-                if (ms >= 30000) {
-                    stats.addStream(playedAt, entry);
-                }
-
-                if (entry.isSkipped()) {
-                    stats.incrementSkip();
-                }
-            }
-        });
-        return map;
-    }
-
     public static class AlbumStats {
         String album;
         String artist;
@@ -243,7 +259,7 @@ public class DataService {
                 firstPlayedDate = playedAt;
             }
             hours += ms / 1000.0 / 60.0 / 60.0;
-//            playbackHistory.add(entry);
+            playbackHistory.add(entry);
         }
 
         public void incrementSkip() {
@@ -258,31 +274,6 @@ public class DataService {
         public List<SpotifyPlaybackEntry> getPlaybackHistory() { return playbackHistory; }
     }
 
-    public Map<String, AlbumStats> getAlbumStatsMap(String folderPath) {
-        Map<String, AlbumStats> map = new LinkedHashMap<>();
-
-        processSessionFolder(folderPath, entry -> {
-            String album = entry.getAlbumName();
-            String artist = entry.getArtistName();
-            String playedAt = entry.getTimestamp();
-            int ms = entry.getMsPlayed();
-
-            if (album != null) {
-                map.putIfAbsent(album, new AlbumStats(album, artist, playedAt, entry));
-                AlbumStats stats = map.get(album);
-
-                if (ms >= 30000) {
-                    stats.addStream(ms, playedAt, entry);
-                }
-
-                if (entry.isSkipped()) {
-                    stats.incrementSkip();
-                }
-            }
-        });
-        return map;
-    }
-
     public static class GeneralStats {
         int totalEntries;
         int totalStreams;
@@ -292,8 +283,9 @@ public class DataService {
         Map<String, Integer> totalMusicTime;
         Map<String, Integer> totalPodcastTime;
         String totalArtistRevenue;
+        Map<String, String> firstTrackEver;
 
-        public GeneralStats(int totalEntries, int totalStreams, int totalUniqueStreams, int totalSkippedTracks, Map<String, Integer> totalMusicTime, int percentageTimeShuffled, Map<String, Integer> totalPodcastTime, String totalArtistRevenue) {
+        public GeneralStats(int totalEntries, int totalStreams, int totalUniqueStreams, int totalSkippedTracks, Map<String, Integer> totalMusicTime, int percentageTimeShuffled, Map<String, Integer> totalPodcastTime, String totalArtistRevenue, Map<String, String> firstTrackEver) {
             this.totalEntries = totalEntries;
             this.totalStreams = totalStreams;
             this.totalUniqueStreams = totalUniqueStreams;
@@ -302,6 +294,7 @@ public class DataService {
             this.percentageTimeShuffled = percentageTimeShuffled;
             this.totalPodcastTime = totalPodcastTime;
             this.totalArtistRevenue = totalArtistRevenue;
+            this.firstTrackEver = firstTrackEver;
         }
 
         public int getTotalEntries() { return totalEntries; }
@@ -312,6 +305,7 @@ public class DataService {
         public Map<String, Integer> getTotalMusicTime() { return totalMusicTime; }
         public Map<String, Integer> getTotalPodcastTime() { return totalPodcastTime; }
         public String getTotalArtistRevenue() { return totalArtistRevenue; }
+        public Map<String, String> getFirstTrackEver() { return firstTrackEver; }
     }
 
     public GeneralStats getGeneralStats(String folderPath) {
@@ -321,6 +315,8 @@ public class DataService {
         int[] totalMusicTime = {0};
         int[] totalPodcastTime = {0};
         int[] tracksOnShuffle = {0};
+        Map <String, String> firstTrackEver = new HashMap<>();
+        SpotifyPlaybackEntry[] firstEntry = {null};
         Set<String> uniqueTracks = new HashSet<>();
 
         processSessionFolder(folderPath, entry -> {
@@ -341,7 +337,15 @@ public class DataService {
             if (entry.getPodcastName() != null) {
                 totalPodcastTime[0] += entry.getMsPlayed();
             }
+
+//           First track ever logic
+            if (entry.getTrackName() == null || entry.getTimestamp() == null) return;
+
+            if (firstEntry[0] == null || Instant.parse(entry.getTimestamp()).isBefore(Instant.parse(firstEntry[0].getTimestamp()))) {
+                firstEntry[0] = entry;
+            }
         });
+
         int percentageTimeShuffled = totalEntries[0] == 0 ? 0 : (int) Math.round(((double) tracksOnShuffle[0] / totalEntries[0]) * 100);
         int totalUniqueStreams = uniqueTracks.size();
 
@@ -351,8 +355,22 @@ public class DataService {
         double royalties = totalStreamsFloat * 0.004;
         String totalArtistRevenue = df.format(royalties);
 
+//        Total music and podcast conversion
         Map<String, Integer> totalMusicTimeMap = convertMillisToTimeMap(totalMusicTime[0]);
         Map<String, Integer> totalPodcastTimeMap = convertMillisToTimeMap(totalPodcastTime[0]);
+
+//        First track ever clean up data
+        if (firstEntry[0] == null) {
+            firstTrackEver.put("track", "N/A");
+            firstTrackEver.put("timeStamp", "N/A");
+            firstTrackEver.put("artist", "N/A");
+        }
+        ZonedDateTime zdt = ZonedDateTime.parse(firstEntry[0].getTimestamp());
+        String formatted = zdt.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy 'at' h:mm a"));
+
+        firstTrackEver.put("track", firstEntry[0].getTrackName());
+        firstTrackEver.put("artist", firstEntry[0].getArtistName());
+        firstTrackEver.put("timeStamp", formatted);
 
         return new GeneralStats(
                 totalEntries[0],
@@ -362,63 +380,9 @@ public class DataService {
                 totalMusicTimeMap,
                 percentageTimeShuffled,
                 totalPodcastTimeMap,
-                totalArtistRevenue
+                totalArtistRevenue,
+                firstTrackEver
         );
-    }
-
-    public Map<String, Integer> getTopPodcastsByPlays(String folderPath) {
-        Map<String, Integer> map = new LinkedHashMap<>();
-
-        processSessionFolder(folderPath, entry -> {
-            String podcast = entry.getPodcastName();
-            if (podcast != null) {
-                map.put(podcast, map.containsKey(podcast) ? map.get(podcast) + 1 : 1);
-            }
-        });
-        return map;
-    }
-
-    public Map<String, String> getFirstTrackEver(String folderPath) {
-        Map <String, String> map = new HashMap<>();
-        final String[] firstTimeStamp = {null};
-        final String[] firstTrack = {null};
-        final String[] firstArtist = {null};
-
-        processSessionFolder(folderPath, entry -> {
-            String track = entry.getTrackName();
-            String timeStamp = entry.getTimestamp();
-            String artist = entry.getArtistName();
-
-            if (track != null && timeStamp != null) {
-                if (firstTimeStamp[0] == null) {
-                    firstTimeStamp[0] = timeStamp;
-                    firstTrack[0] = track;
-                    firstArtist[0] = artist;
-                } else {
-                    Instant earliest = Instant.parse(firstTimeStamp[0]);
-                    Instant current = Instant.parse(timeStamp);
-                    if (current.isBefore(earliest)) {
-                        firstTrack[0] = track;
-                        firstTimeStamp[0] = timeStamp;
-                        firstArtist[0] = artist;
-                    }
-                }
-            }
-        });
-        if (firstTimeStamp[0] == null || firstTrack[0] == null || firstArtist[0] == null) {
-            map.put("track", "N/A");
-            map.put("timeStamp", "N/A");
-            map.put("artist", "N/A");
-            return map;
-        }
-
-        ZonedDateTime zdt = ZonedDateTime.parse(firstTimeStamp[0]);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy 'at' h:mm a");
-        String readableTimeStamp = zdt.format(formatter);
-        map.put("track", firstTrack[0]);
-        map.put("timeStamp", readableTimeStamp);
-        map.put("artist", firstArtist[0]);
-        return map;
     }
 
     public static class DailyStats {

@@ -4,6 +4,8 @@ import '../App.css'
 import { Box, Tabs, Tab } from '@mui/material'
 import { TabContext, TabPanel } from '@mui/lab'
 import { styled } from '@mui/material/styles';
+import { LineWobble } from 'ldrs/react'
+import 'ldrs/react/LineWobble.css';
 
 
 
@@ -63,7 +65,7 @@ const StyledRow = styled(Box)(({ theme }) => ({
     borderBottom: '1px solid #e0e0e0',
 }));
 
-function GeneralStats({ generalStatsData, firstTrackEverData }) {
+function GeneralStats({ generalStatsData }) {
 
     const totalEntriesContent = generalStatsData ? (
         <p>Total entries: {addNumberCommas(generalStatsData.totalEntries)}</p>
@@ -107,8 +109,8 @@ function GeneralStats({ generalStatsData, firstTrackEverData }) {
         <p>Loading shuffle percent...</p>
     )
 
-    const firstTrackEverContent = firstTrackEverData ? (
-        <p>The first track you've ever listened to on Spotify was {firstTrackEverData["track"]} by {firstTrackEverData["artist"]}. It was played on {firstTrackEverData["timeStamp"]}.</p>
+    const firstTrackEverContent = generalStatsData?.firstTrackEver ? (
+        <p>The first track you've ever listened to on Spotify was {generalStatsData.firstTrackEver["track"]} by {generalStatsData.firstTrackEver["artist"]}. It was played on {generalStatsData.firstTrackEver["timeStamp"]}.</p>
     ) : (
         <p>Loading first track ever...</p>
     )
@@ -167,7 +169,7 @@ function DayStatRow({ index, day, data }) {
     );
 }
 
-function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYearsData, topDaysData }) {
+function DataTabs({ topStatsData, topYearsData, topDaysData }) {
     const [value, setValue] = useState('1');
 
     const handleChange = (event, newValue) => {
@@ -181,9 +183,9 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
         </div>
     )
 
-    const topTracksContent = tracksData ? (
+    const topTracksContent = topStatsData?.trackStats ? (
         <Box>
-            {Object.entries(tracksData)
+            {Object.entries(topStatsData.trackStats)
                 .sort((a, b) => b[1].streamCount - a[1].streamCount)
                 .map(([trackName, stats], index) => (
                     <StyledRow key={trackName}>
@@ -200,9 +202,9 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
         <p>Loading tracks...</p>
     );
 
-    const topNoSkipsContent = tracksData ? (
+    const topNoSkipsContent = topStatsData?.trackStats ? (
         <Box>
-            {Object.entries(tracksData)
+            {Object.entries(topStatsData.trackStats)
                 .filter(([_, data]) => data.skipCount === 0)
                 .sort((a, b) => b[1].streamCount - a[1].streamCount)
                 .map(([trackName, stats], index) => (
@@ -220,18 +222,9 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
         <p>Loading no skips...</p>
     );
 
-
-    // Used to sort by stream count AND skip count
-    // sort((a, b) => {
-    //     if (b[1].streamCount !== a[1].streamCount) {
-    //         return b[1].streamCount - a[1].streamCount;
-    //     }
-    //     return a[1].skipCount - b[1].skipCount;
-    // })
-
-    const topArtistContent = artistData ? (
+    const topArtistContent = topStatsData?.artistStats ? (
         <Box>
-            {Object.entries(artistData)
+            {Object.entries(topStatsData.artistStats)
                 .sort((a, b) => b[1].streamCount - a[1].streamCount)
                 .map(([artist, stats], index) => (
                     <StyledRow key={artist}>
@@ -245,9 +238,9 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
         <p>Loading artists...</p>
     );
 
-    const topArtistsUniquePlaysContent = artistData ? (
+    const topArtistsUniquePlaysContent = topStatsData?.artistStats ? (
         <Box>
-            {Object.entries(artistData)
+            {Object.entries(topStatsData.artistStats)
                 .sort((a, b) => b[1].uniqueStreamCount - a[1].uniqueStreamCount)
                 .map(([artist, stats], index) => (
                     <StyledRow>
@@ -261,9 +254,9 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
         <p>Loading artists...</p>
     );
 
-    const topAlbumsContent = albumData ? (
+    const topAlbumsContent = topStatsData?.albumStats ? (
         <Box>
-            {Object.entries(albumData)
+            {Object.entries(topStatsData.albumStats)
                 .sort((a, b) => b[1].streamCount - a[1].streamCount)
                 .map(([album, stats], index) => (
                     <StyledRow>
@@ -280,9 +273,9 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
         <p>Loading albums...</p>
     );
 
-    const topSkippedContent = tracksData ? (
+    const topSkippedContent = topStatsData?.trackStats ? (
         <Box>
-            {Object.entries(tracksData)
+            {Object.entries(topStatsData.trackStats)
                 .sort((a, b) => b[1].skipCount - a[1].skipCount)
                 .map(([trackName, stats], index) => (
                     <StyledRow>
@@ -299,9 +292,9 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
         <p>Loading skipped tracks...</p>
     );
 
-    const topPodcastsContent = topPodcastsData ? (
+    const topPodcastsContent = topStatsData?.podcastStats ? (
         <Box>
-            {Object.entries(topPodcastsData)
+            {Object.entries(topStatsData.podcastStats)
                 .sort((a, b) => b[1] - a[1])
                 .map(([podcast, plays], index) => (
                     <StyledRow>
@@ -436,12 +429,8 @@ function DataTabs({ tracksData, artistData, albumData, topPodcastsData, topYears
 }
 
 export default function App() {
-    const [tracksData, setTracksData] = useState(null)
-    const [artistData, setArtistData] = useState(null)
-    const [albumData, setAlbumData]  = useState(null)
+    const [topStatsData, setTopStatsData] = useState(null)
     const [generalStatsData, setGeneralStatsData] = useState(null)
-    const [firstTrackEverData, setFirstTrackEverData] = useState(null)
-    const [topPodcastsData, setTopPodcastsData] = useState(null)
     const [topYearsData, setTopYearsData] = useState(null)
     const [topDaysData, setTopDaysData] = useState(null)
 
@@ -451,31 +440,19 @@ export default function App() {
         const fetchAllData = async () => {
             try {
                 const [
-                    trackStats,
-                    artistStats,
-                    albumStats,
+                    topStats,
                     generalStats,
-                    firstTrack,
-                    topPodcasts,
                     topYears,
                     topDays
                 ] = await Promise.all([
-                    axios.get('/api/track-stats'),
-                    axios.get('/api/artist-stats'),
-                    axios.get('/api/album-stats'),
+                    axios.get('/api/top-stats'),
                     axios.get('/api/general-stats'),
-                    axios.get('/api/first-track-ever'),
-                    axios.get('/api/top-podcasts'),
                     axios.get('/api/top-years'),
                     axios.get('/api/top-days')
                 ])
 
-                setTracksData(trackStats.data)
-                setArtistData(artistStats.data)
-                setAlbumData(albumStats.data)
+                setTopStatsData(topStats.data)
                 setGeneralStatsData(generalStats.data)
-                setFirstTrackEverData(firstTrack.data)
-                setTopPodcastsData(topPodcasts.data)
                 setTopYearsData(topYears.data)
                 setTopDaysData(topDays.data)
             } catch (err) {
@@ -486,6 +463,22 @@ export default function App() {
         fetchAllData()
     }, [])
 
+    if (!topStatsData || !generalStatsData || !topYearsData || !topDaysData) {
+        return (
+            <div style={{ textAlign: 'center', marginTop: '50px' }}>
+                <h2>Loading your data...</h2>
+                <LineWobble
+                    size="80"
+                    stroke="5"
+                    bgOpacity="0.1"
+                    speed="1.75"
+                    color="black"
+                />
+            </div>
+        );
+    }
+
+
     return (
         <>
             <h1>Your Extended Spotify Streaming History</h1>
@@ -493,15 +486,11 @@ export default function App() {
             <p><b>Note:</b> Spotify considers a <b>stream</b> as a track that was played for 30 seconds or more.</p>
             <GeneralStats
                 generalStatsData={generalStatsData}
-                firstTrackEverData={firstTrackEverData}
             />
             <br/>
             <h2>Top Stats of All Time</h2>
             <DataTabs
-                tracksData={tracksData}
-                artistData={artistData}
-                albumData={albumData}
-                topPodcastsData={topPodcastsData}
+                topStatsData={topStatsData}
                 topYearsData={topYearsData}
                 topDaysData={topDaysData}
             />

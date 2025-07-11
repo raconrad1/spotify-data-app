@@ -27,46 +27,18 @@ public class SpotifyApiController {
         this.dataService = dataService;
     }
 
-    @GetMapping("/track-stats")
-    public ResponseEntity<Map<String, DataService.TrackStats>> getTrackStats() {
+    @GetMapping("/top-stats")
+    public ResponseEntity<DataService.TopStatsCollector> getTopStats() {
         String folderPath = dataService.getCurrentSessionFolder();
-        Map<String, DataService.TrackStats> stats = dataService.getTrackStatsMap(folderPath);
-        return ResponseEntity.ok(stats);
-    }
-
-    @GetMapping ("/artist-stats")
-    public ResponseEntity<Map<String, DataService.ArtistStats>> getArtistStats() {
-        String folderPath = dataService.getCurrentSessionFolder();
-        Map<String, DataService.ArtistStats> stats = dataService.getArtistStatsMap(folderPath);
-        return ResponseEntity.ok(stats);
-    }
-
-    @GetMapping("/album-stats")
-    public ResponseEntity<Map<String, DataService.AlbumStats>> getAlbumStats() {
-        String folderPath = dataService.getCurrentSessionFolder();
-        Map<String, DataService.AlbumStats> stats = dataService.getAlbumStatsMap(folderPath);
+        DataService.TopStatsCollector stats = dataService.getTopStats(folderPath);
         return ResponseEntity.ok(stats);
     }
 
     @GetMapping("/general-stats")
     public ResponseEntity<DataService.GeneralStats> getGeneralStats() {
         String folderPath = dataService.getCurrentSessionFolder();
-        DataService.GeneralStats stats = dataService.getGeneralStats(folderPath); // renamed method for clarity
+        DataService.GeneralStats stats = dataService.getGeneralStats(folderPath);
         return ResponseEntity.ok(stats);
-    }
-
-    @GetMapping("/top-podcasts")
-    public ResponseEntity<Map<String, Integer>> getTopPodcasts() {
-        String folderPath = dataService.getCurrentSessionFolder();
-        Map<String, Integer> podcasts = dataService.getTopPodcastsByPlays(folderPath);
-        return ResponseEntity.ok(podcasts);
-    }
-
-    @GetMapping("/first-track-ever")
-    public ResponseEntity<Map<String, String>> getFirstTrackEver() {
-        String folderPath = dataService.getCurrentSessionFolder();
-        Map<String, String> firstTrack = dataService.getFirstTrackEver(folderPath);
-        return ResponseEntity.ok(firstTrack);
     }
 
     @GetMapping("/top-days")
@@ -113,16 +85,13 @@ public class SpotifyApiController {
             while ((entry = zis.getNextEntry()) != null) {
                 String entryName = entry.getName();
 
-                // Skip macOS metadata entries
                 if (entryName.startsWith("__MACOSX") || entryName.startsWith("._")) {
                     continue;
                 }
 
-                // Sanitize name to avoid invalid characters
                 String safeName = entryName.replace(":", "-").replaceAll("[^\\w\\-./ ]", "").trim();
                 File newFile = new File(destDir, safeName).getCanonicalFile();
 
-                // Prevent zip slip
                 if (!newFile.getPath().startsWith(destDir.getCanonicalPath())) {
                     throw new IOException("Entry is outside of target dir: " + entryName);
                 }
@@ -145,7 +114,6 @@ public class SpotifyApiController {
                         }
                     }
 
-                    // Handle nested zip
                     if (newFile.getName().toLowerCase().endsWith(".zip")) {
                         File nestedDestDir = new File(newFile.getParentFile(), newFile.getName() + "_unzipped");
                         if (!nestedDestDir.exists() && !nestedDestDir.mkdirs()) {
