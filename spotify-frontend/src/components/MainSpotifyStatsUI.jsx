@@ -466,7 +466,7 @@ export default function App() {
     if (!topStatsData || !generalStatsData || !topYearsData || !topDaysData) {
         return (
             <div style={{ textAlign: 'center', marginTop: '50px' }}>
-                <h2>Loading your data...</h2>
+                <h2>Compiling your data...</h2>
                 <LineWobble
                     size="80"
                     stroke="5"

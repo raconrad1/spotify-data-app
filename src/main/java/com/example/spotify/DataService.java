@@ -90,6 +90,28 @@ public class DataService {
         return timeMap;
     }
 
+    private Map<String, String> cleanFirstTrackEver(SpotifyPlaybackEntry firstEntry) {
+        Map<String, String> firstTrackEver = new HashMap<>();
+        if (firstEntry == null) {
+            firstTrackEver.put("track", "N/A");
+            firstTrackEver.put("timeStamp", "N/A");
+            firstTrackEver.put("artist", "N/A");
+        }
+        ZonedDateTime zdt = ZonedDateTime.parse(firstEntry.getTimestamp());
+        String formatted = zdt.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy 'at' h:mm a"));
+
+        firstTrackEver.put("track", firstEntry.getTrackName());
+        firstTrackEver.put("artist", firstEntry.getArtistName());
+        firstTrackEver.put("timeStamp", formatted);
+        return firstTrackEver;
+    }
+
+    private String cleanArtistRevenue(float totalStreamsFloat) {
+        DecimalFormat df = new DecimalFormat("#.00");
+        double royalties = totalStreamsFloat * 0.004;
+        return df.format(royalties);
+    }
+
     //    Methods used in SpotifyApiController.java
 
     public static class TopStatsCollector {
@@ -315,7 +337,6 @@ public class DataService {
         int[] totalMusicTime = {0};
         int[] totalPodcastTime = {0};
         int[] tracksOnShuffle = {0};
-        Map <String, String> firstTrackEver = new HashMap<>();
         SpotifyPlaybackEntry[] firstEntry = {null};
         Set<String> uniqueTracks = new HashSet<>();
 
@@ -346,31 +367,14 @@ public class DataService {
             }
         });
 
+
+//      Start data formatting/manipulation
         int percentageTimeShuffled = totalEntries[0] == 0 ? 0 : (int) Math.round(((double) tracksOnShuffle[0] / totalEntries[0]) * 100);
         int totalUniqueStreams = uniqueTracks.size();
-
-//      Total Artist Revenue Logic
-        float totalStreamsFloat = (float) totalStreams[0];
-        DecimalFormat df = new DecimalFormat("#.00");
-        double royalties = totalStreamsFloat * 0.004;
-        String totalArtistRevenue = df.format(royalties);
-
-//        Total music and podcast conversion
+        String totalArtistRevenue = cleanArtistRevenue((float) totalStreams[0]);
         Map<String, Integer> totalMusicTimeMap = convertMillisToTimeMap(totalMusicTime[0]);
         Map<String, Integer> totalPodcastTimeMap = convertMillisToTimeMap(totalPodcastTime[0]);
-
-//        First track ever clean up data
-        if (firstEntry[0] == null) {
-            firstTrackEver.put("track", "N/A");
-            firstTrackEver.put("timeStamp", "N/A");
-            firstTrackEver.put("artist", "N/A");
-        }
-        ZonedDateTime zdt = ZonedDateTime.parse(firstEntry[0].getTimestamp());
-        String formatted = zdt.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy 'at' h:mm a"));
-
-        firstTrackEver.put("track", firstEntry[0].getTrackName());
-        firstTrackEver.put("artist", firstEntry[0].getArtistName());
-        firstTrackEver.put("timeStamp", formatted);
+        Map <String, String> firstTrackEver = cleanFirstTrackEver(firstEntry[0]);
 
         return new GeneralStats(
                 totalEntries[0],
