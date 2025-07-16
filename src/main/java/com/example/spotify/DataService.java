@@ -116,15 +116,14 @@ public class DataService {
         return df.format(royalties);
     }
 
-    //    Methods used in SpotifyApiController.java
 
     public static class CombinedStatsCollector {
         public TopStats topStats;
         public GeneralStats generalStats;
-        public DailyStats dailyStats;
-        public YearlyStats yearlyStats;
+        DailyStatsCollector dailyStats;
+        YearlyStatsCollector yearlyStats;
 
-        public CombinedStatsCollector(TopStats topStats, GeneralStats generalStats, DailyStats dailyStats, YearlyStats yearlyStats) {
+        public CombinedStatsCollector(TopStats topStats, GeneralStats generalStats, DailyStatsCollector dailyStats, YearlyStatsCollector yearlyStats) {
             this.topStats = topStats;
             this.generalStats = generalStats;
             this.dailyStats = dailyStats;
@@ -133,8 +132,8 @@ public class DataService {
 
         public TopStats getTopStats() { return topStats; }
         public GeneralStats getGeneralStats() { return generalStats; }
-        public DailyStats getDailyStats() { return dailyStats; }
-        public YearlyStats getYearlyStats() { return yearlyStats; }
+        public DailyStatsCollector getDailyStats() { return dailyStats; }
+        public YearlyStatsCollector getYearlyStats() { return yearlyStats; }
 
     }
 
@@ -155,8 +154,8 @@ public class DataService {
     public CombinedStatsCollector computeStats(String folderPath) {
         TopStats topStats = new TopStats();
         GeneralStats generalStats = new GeneralStats();
-        DailyStats dailyStats = new DailyStats();
-        YearlyStats yearlyStats = new YearlyStats();
+        DailyStatsCollector dailyStats = new DailyStatsCollector();
+        YearlyStatsCollector yearlyStats = new YearlyStatsCollector();
 
         processSessionFolder(folderPath, List.of(
                 topStats::processEntry,
@@ -409,15 +408,8 @@ public class DataService {
 
     }
 
-    public static class DailyStats {
+    public static class DailyStatsCollector {
         private final Map<String, DailyStats> dailyStatsMap = new LinkedHashMap<>();
-
-        public int streams = 0;
-        public double hours = 0;
-        public Map<String, Integer> topTracks = new LinkedHashMap<>();
-        public Map<String, Integer> topArtists = new LinkedHashMap<>();
-
-        private DailyStats() {}
 
         public void processEntry(SpotifyPlaybackEntry entry) {
             int ms = entry.getMsPlayed();
@@ -430,6 +422,27 @@ public class DataService {
                 daily.addPlay(entry);
             }
         }
+
+        public void finalizeStats() {
+            for (DailyStats stats : dailyStatsMap.values()) {
+                stats.finalizeStats();
+            }
+        }
+
+        public Map<String, DailyStats> getDailyStatsMap() {
+            return dailyStatsMap;
+        }
+    }
+
+    public static class DailyStats {
+
+        public int streams = 0;
+        public double hours = 0;
+        public Map<String, Integer> topTracks = new LinkedHashMap<>();
+        public Map<String, Integer> topArtists = new LinkedHashMap<>();
+
+        private DailyStats() {}
+
         void addPlay(SpotifyPlaybackEntry entry) {
             streams++;
             hours += entry.getMsPlayed() / 1000.0 / 60.0 / 60.0;
@@ -465,24 +478,13 @@ public class DataService {
                             LinkedHashMap::new
                     ));
         }
-        public Map<String, DailyStats> getDailyStatsMap() {
-            return dailyStatsMap;
-        }
-
-        public int getStreams() { return streams; }
-        public double getHours() { return hours; }
-        public Map<String, Integer> getTopTracks() { return topTracks; }
-        public Map<String, Integer> getTopArtists() { return topArtists; }
-
     }
 
-    public static class YearlyStats {
+    public static class YearlyStatsCollector {
+
         private final Map<String, YearlyStats> yearlyStatsMap = new LinkedHashMap<>();
         private final Set<String> songsSeen = new HashSet<>();
 
-        public int streams = 0;
-        public double hours = 0;
-        public int uniqueStreams = 0;
 
         public void processEntry(SpotifyPlaybackEntry entry) {
             String timeStamp = entry.getTimestamp();
@@ -499,6 +501,18 @@ public class DataService {
             }
         }
 
+        public Map<String, YearlyStats> getYearlyStatsMap() {
+            return yearlyStatsMap;
+        }
+    }
+
+    public static class YearlyStats {
+
+        public int streams = 0;
+        public double hours = 0;
+        public int uniqueStreams = 0;
+
+
         private void addPlay(int ms, boolean uniquePlay) {
             streams++;
             hours += ms / 1000.0 / 60.0 / 60.0;
@@ -506,14 +520,5 @@ public class DataService {
                 uniqueStreams++;
             }
         }
-
-        public Map<String, YearlyStats> getYearlyStatsMap() {
-            return yearlyStatsMap;
-        }
-
-        public int getStreams() { return streams; }
-        public double getHours() { return hours; }
-        public int getUniqueStreams() { return uniqueStreams; }
-
     }
 }

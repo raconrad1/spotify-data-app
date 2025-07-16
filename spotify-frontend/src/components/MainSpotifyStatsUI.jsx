@@ -144,7 +144,7 @@ function DayStatRow({ index, day, data }) {
             <StyledRow>
                 <span><b>{index + 1}.</b> {day}</span>
                 <span>{addNumberCommas(data.streams)} streams</span>
-                <span>{data.hours.toFixed(1)} hours listened</span>
+                <span>{(data.hours ?? 0).toFixed(1)} hours listened</span>
                 <button size="small" onClick={() => setExpanded(!expanded)}>
                     {expanded ? 'Hide Details' : 'Show Details'}
                 </button>
@@ -316,7 +316,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                     <StyledRow>
                         <span><b>{year}</b></span>
                         <span>{addNumberCommas(streams)} streams</span>
-                        <span>{hours.toFixed(1)} hours listened</span>
+                        <span>{(hours ?? 0).toFixed(1)} hours listened</span>
                         <span>{addNumberCommas(uniqueStreams)} unique streams</span>
                     </StyledRow>
                 ))}

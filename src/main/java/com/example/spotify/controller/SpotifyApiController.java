@@ -51,16 +51,17 @@ public class SpotifyApiController {
     }
 
     @GetMapping("/top-days")
-    public ResponseEntity<DataService.DailyStats> getTopDays() {
+    public ResponseEntity<Map<String, DataService.DailyStats>> getTopDays() {
         ensureStatsAreLoaded();
-        return ResponseEntity.ok(dataService.getStats().getDailyStats());
+        return ResponseEntity.ok(dataService.getStats().getDailyStats().getDailyStatsMap());
     }
 
     @GetMapping("/top-years")
-    public ResponseEntity<DataService.YearlyStats> getTopYears() {
+    public ResponseEntity<Map<String, DataService.YearlyStats>> getTopYears() {
         ensureStatsAreLoaded();
-        return ResponseEntity.ok(dataService.getStats().getYearlyStats());
+        return ResponseEntity.ok(dataService.getStats().getYearlyStats().getYearlyStatsMap());
     }
+
 
     @PostMapping("/upload")
     public ResponseEntity<String> handleUpload(@RequestParam("file") MultipartFile zipFile) {
