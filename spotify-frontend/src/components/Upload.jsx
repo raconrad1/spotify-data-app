@@ -9,16 +9,23 @@ export default function Upload({ onUploadComplete }) {
 
     const labelStyle = {
         display: "block",
-        width: "120px",
+        width: "180px",
         margin: "20px auto",
         textAlign: "center",
         padding: "16px 24px",
-        fontSize: "16px",
+        fontSize: "17px",
         borderRadius: "10px",
         cursor: "pointer",
         backgroundColor: isHovered ? "#03deff" : "#7feafa",
         transition: "background-color 0.3s"
     };
+
+    const textBox = {
+        border: "solid #bfbfbf",
+        borderRadius: "15px",
+        margin: "10px"
+    }
+
 
     const handleFileChange = async (e) => {
         setError("");
@@ -54,23 +61,34 @@ export default function Upload({ onUploadComplete }) {
     };
 
     return (
-        <div style={{ textAlign: "center", marginTop: "4rem" }}>
-
+        <div style={{ textAlign: "center", marginTop: "1rem" }}>
             <h1>Explore your Spotify listening history!</h1>
-            <div style={{ margin: "3% 0" }}>
-                <h3>If you don't yet have your Spotify data</h3>
-                <p>Go to <a href="https://www.spotify.com/us/account/privacy/" target="_blank">Spotify's privacy page</a> and scroll down to request your Extended Streaming History.</p>
-                <p>This includes every track and podcast you've every played, when you played them, for how long, etc. For more information, visit <a href="https://support.spotify.com/us/article/understanding-my-data/#_gl=1*13r3kp5*_gcl_au*MjA4MDgyNTQ4Mi4xNzQ2MTA1NDI1" target="_blank">Spotify's page on understanding the data.</a></p>
-                <p>Note: This app is <b>NOT</b> compatible with the data that you would receive if you requested the "Account data", which takes about 5 days to retrieve.</p>
-                <p>Once requested, Spotify will send you data for the lifetime of your account in about 3 weeks time.</p>
+            <div style={textBox}>
+                <h2>How it works</h2>
+                <p>Spotify allows users to download their data for <b>every single song and podcast</b> that they have ever played.</p>
+                <p>This data includes when you played those songs, for how long, if they've been skipped, whether you were listening on shuffle mode, and more!</p>
+                <p>If you want to do a deeper dive on how the raw data looks, visit <a href="https://support.spotify.com/us/article/understanding-my-data/#_gl=1*13r3kp5*_gcl_au*MjA4MDgyNTQ4Mi4xNzQ2MTA1NDI1" target="_blank">Spotify's page on understanding the data</a> and find the Extended Streaming History section.</p>
+                <p>Using this data, this application will show you a bunch of fun statistics about your entire listening history such as top artists, songs, podcasts, yearly data, and more.</p>
             </div>
+            <div style={{ display: "flex", justifyContent: "space-between"}}>
+                <div style={textBox}>
+                    <h2>To obtain your Spotify data</h2>
+                    <ol>
+                        <li>Go to <a href="https://www.spotify.com/us/account/privacy/" target="_blank">Spotify's privacy page</a> and scroll down to the "Download your data" section.</li>
+                        <li>Uncheck "Select account data", and check "Select extended streaming history".</li>
 
-            <div style={{ width: "45%", borderBottom: "dashed black", margin: "1.5rem auto" }}/>
+                    </ol>
+                    <p>Once requested, Spotify will send your extended listening history data in ~3 weeks or less.</p>
+                    <p>It could take a while, but it's worth the wait!</p>
+                </div>
 
-            <div style={{ margin: "3% 0" }}>
-                <p>When Spotify sends you an email that your data is ready to be downloaded, follow their instructions in the email and retrieve your .zip file.</p>
-                <p>Inside this .zip file is a bunch of json files that are virtually useless on their own. Messy data that is not very readable, and that isn't compiled in any way.</p>
-                <h4>That's where this app comes in handy! Upload the entire .zip file below and we'll do the rest.</h4>
+                <div style={textBox}>
+                    <h2>Upload your data</h2>
+                    <p>When Spotify sends you the email that your data is ready to be downloaded, follow their instructions and download your data.</p>
+                    <p>Inside the .zip file is a bunch of JSON files that are virtually useless on their own. It's data that is not very readable, and that isn't compiled in any way.</p>
+                    <h4>That's where this app comes in handy! Upload your .zip file below and we'll do the rest.</h4>
+                    <p><em>Your data will not be uploaded into any database.</em></p>
+                </div>
             </div>
             <label style={labelStyle}
                    htmlFor="file-upload"
