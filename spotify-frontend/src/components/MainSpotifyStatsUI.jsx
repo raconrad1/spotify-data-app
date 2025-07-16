@@ -8,7 +8,6 @@ import { LineWobble } from 'ldrs/react'
 import 'ldrs/react/LineWobble.css';
 
 
-
 function addNumberCommas(value) {
     return Number(value).toLocaleString('en-us');
 }
@@ -65,70 +64,109 @@ const StyledRow = styled(Box)(({ theme }) => ({
     borderBottom: '1px solid #e0e0e0',
 }));
 
+function StatBox({ children }) {
+    return (
+        <div style={{
+            border: "1px solid #c4c4c4",
+            padding: "8px",
+            borderRadius: "30px",
+            margin: "0 5px 8px 5px",
+            flexGrow: "1",
+        }}>
+            {children}
+        </div>
+    );
+}
+
 function GeneralStats({ generalStatsData }) {
 
     const totalEntriesContent = generalStatsData ? (
-        <p>Total entries: {addNumberCommas(generalStatsData.totalEntries)}</p>
+        <StatBox>
+            <h4>Total entries</h4>
+            <p>{addNumberCommas(generalStatsData.totalEntries)}</p>
+        </StatBox>
     ) : (
         <p>Loading total entries...</p>
     )
 
     const totalStreamsContent = generalStatsData ? (
-        <p>Total streams: {addNumberCommas(generalStatsData.totalStreams)}</p>
+        <StatBox>
+            <h4>Total streams</h4>
+            <p>{addNumberCommas(generalStatsData.totalStreams)}</p>
+        </StatBox>
     ) : (
         <p>Loading total streams...</p>
     )
 
     const totalUniqueEntriesContent = generalStatsData ? (
-        <p>Total unique tracks played: {addNumberCommas(generalStatsData.totalUniqueStreams)}</p>
+        <StatBox>
+            <h4>Total unique streams</h4>
+            <p>{addNumberCommas(generalStatsData.totalUniqueStreams)}</p>
+        </StatBox>
     ) : (
-        <p>Loading total unique tracks played...</p>
+        <p>Loading total unique streams...</p>
     )
 
     const totalSkipsContent = generalStatsData ? (
-        <p>Total tracks skipped: {addNumberCommas(generalStatsData.totalSkippedTracks)}</p>
+        <StatBox>
+            <h4>Total tracks skipped</h4>
+            <p>{addNumberCommas(generalStatsData.totalSkippedTracks)}</p>
+        </StatBox>
     ) : (
         <p>Loading total skips...</p>
     )
 
     const totalMusicTimeContent = generalStatsData?.totalMusicTime ? (
-        <p>You've listened to music for {addNumberCommas(generalStatsData.totalMusicTime.minutes)} minutes, which is {addNumberCommas(generalStatsData.totalMusicTime.hours)} hours, or {addNumberCommas(generalStatsData.totalMusicTime.days)} days.</p>
+        <StatBox>
+            <p>You've listened to <b>music</b> for {addNumberCommas(generalStatsData.totalMusicTime.minutes)} minutes, which is {addNumberCommas(generalStatsData.totalMusicTime.hours)} hours, or {addNumberCommas(generalStatsData.totalMusicTime.days)} days.</p>
+        </StatBox>
     ) : (
         <p>Loading total time listened to music...</p>
     )
 
     const totalPodcastTimeContent = generalStatsData?.totalPodcastTime ? (
-        <p>You've listened to podcasts for {addNumberCommas(generalStatsData.totalPodcastTime.minutes)} minutes, which is {addNumberCommas(generalStatsData.totalPodcastTime.hours)} hours, or {addNumberCommas(generalStatsData.totalPodcastTime.days)} days.</p>
+        <StatBox>
+            <p>You've listened to <b>podcasts</b> for {addNumberCommas(generalStatsData.totalPodcastTime.minutes)} minutes, which is {addNumberCommas(generalStatsData.totalPodcastTime.hours)} hours, or {addNumberCommas(generalStatsData.totalPodcastTime.days)} days.</p>
+        </StatBox>
     ) : (
         <p>Loading total time listened to podcasts...</p>
     )
 
     const shufflePercentContent = generalStatsData ? (
-        <p>{generalStatsData.percentageTimeShuffled}% of the time you are listening to music on shuffle.</p>
+        <StatBox>
+            <p><b>{generalStatsData.percentageTimeShuffled}%</b> of the time you are listening to music on shuffle.</p></StatBox>
     ) : (
         <p>Loading shuffle percent...</p>
     )
 
     const firstTrackEverContent = generalStatsData?.firstTrackEver ? (
-        <p>The first track you've ever listened to on Spotify was {generalStatsData.firstTrackEver["track"]} by {generalStatsData.firstTrackEver["artist"]}. It was played on {generalStatsData.firstTrackEver["timeStamp"]}.</p>
+        <StatBox>
+            <p>The first track you've ever listened to on Spotify was <b>{generalStatsData.firstTrackEver["track"]} by {generalStatsData.firstTrackEver["artist"]}</b>. It was played on {generalStatsData.firstTrackEver["timeStamp"]}.</p>
+        </StatBox>
     ) : (
         <p>Loading first track ever...</p>
     )
 
     const totalRoyaltiesContent = generalStatsData ? (
-        <p>On Spotify, artists earn an average of $0.004 per stream. That means you have contributed approximately <b>${generalStatsData.totalArtistRevenue}</b> to artists through your listening. However, this estimate assumes that artists receive the full amount, which often isn't the case - most labels take a significant share of the streaming revenue.</p>
+        <StatBox>
+            <p>On Spotify, artists earn an average of $0.004 per stream. That means you have contributed approximately <b>${generalStatsData.totalArtistRevenue}</b> to artists through your listening. However, this estimate assumes that artists receive the full amount, which often isn't the case - most labels take a significant share of the streaming revenue.</p>
+        </StatBox>
     ) : (
         <p>Loading total revenue to artists...</p>
     )
 
     return (
-        <div>
-            {totalEntriesContent}
-            {totalStreamsContent}
-            {totalUniqueEntriesContent}
-            {totalSkipsContent}
-            {totalMusicTimeContent}
-            {totalPodcastTimeContent}
+        <div style={{ display: "flex", flexWrap: "wrap", alignContent: "space-around" }}>
+            <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%" }}>
+                {totalEntriesContent}
+                {totalStreamsContent}
+                {totalUniqueEntriesContent}
+                {totalSkipsContent}
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%" }}>
+                {totalMusicTimeContent}
+                {totalPodcastTimeContent}
+            </div>
             {shufflePercentContent}
             {firstTrackEverContent}
             {totalRoyaltiesContent}
@@ -482,8 +520,7 @@ export default function App() {
     return (
         <>
             <h1>Your Extended Spotify Streaming History</h1>
-            <h2>General Stats</h2>
-            <p><b>Note:</b> Spotify considers a <b>stream</b> as a track that was played for 30 seconds or more.</p>
+            <p>Spotify considers a <b>stream</b> as a track that was played for at least 30 seconds.</p>
             <GeneralStats
                 generalStatsData={generalStatsData}
             />
