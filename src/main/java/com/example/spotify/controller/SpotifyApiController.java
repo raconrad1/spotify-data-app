@@ -27,32 +27,39 @@ public class SpotifyApiController {
         this.dataService = dataService;
     }
 
-    @GetMapping("/top-stats")
-    public ResponseEntity<DataService.TopStatsCollector> getTopStats() {
+    private void ensureStatsAreLoaded() {
         String folderPath = dataService.getCurrentSessionFolder();
-        DataService.TopStatsCollector stats = dataService.getTopStats(folderPath);
-        return ResponseEntity.ok(stats);
+        dataService.generateStatsIfNeeded(folderPath);
+    }
+
+    @GetMapping("/all-stats")
+    public ResponseEntity<DataService.CombinedStatsCollector> getStats() {
+        ensureStatsAreLoaded();
+        return ResponseEntity.ok(dataService.getStats());
+    }
+
+    @GetMapping("/top-stats")
+    public ResponseEntity<DataService.TopStats> getTopStats() {
+        ensureStatsAreLoaded();
+        return ResponseEntity.ok(dataService.getStats().getTopStats());
     }
 
     @GetMapping("/general-stats")
     public ResponseEntity<DataService.GeneralStats> getGeneralStats() {
-        String folderPath = dataService.getCurrentSessionFolder();
-        DataService.GeneralStats stats = dataService.getGeneralStats(folderPath);
-        return ResponseEntity.ok(stats);
+        ensureStatsAreLoaded();
+        return ResponseEntity.ok(dataService.getStats().getGeneralStats());
     }
 
     @GetMapping("/top-days")
-    public ResponseEntity<Map<String, DataService.DailyStats>> getTopDays() {
-        String folderPath = dataService.getCurrentSessionFolder();
-        Map<String, DataService.DailyStats> topDays = dataService.getTopDays(folderPath);
-        return ResponseEntity.ok(topDays);
+    public ResponseEntity<DataService.DailyStats> getTopDays() {
+        ensureStatsAreLoaded();
+        return ResponseEntity.ok(dataService.getStats().getDailyStats());
     }
 
     @GetMapping("/top-years")
-    public ResponseEntity<Map<String, DataService.YearlyStats>> getTopYears() {
-        String folderPath = dataService.getCurrentSessionFolder();
-        Map<String, DataService.YearlyStats> topYears = dataService.getTopYears(folderPath);
-        return ResponseEntity.ok(topYears);
+    public ResponseEntity<DataService.YearlyStats> getTopYears() {
+        ensureStatsAreLoaded();
+        return ResponseEntity.ok(dataService.getStats().getYearlyStats());
     }
 
     @PostMapping("/upload")

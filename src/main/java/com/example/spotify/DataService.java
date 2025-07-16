@@ -26,6 +26,8 @@ import java.util.function.Consumer;
 public class DataService {
 
     private String currentSessionFolder;
+    private CombinedStatsCollector cachedStats = null;
+    private String lastParsedFolder = null;
 
     public void loadSessionFolder(String folderPath) {
         this.currentSessionFolder = folderPath;
@@ -35,7 +37,7 @@ public class DataService {
         return this.currentSessionFolder;
     }
 
-    public static void processSessionFolder(String folderPath, Consumer<SpotifyPlaybackEntry> entryConsumer) {
+    public static void processSessionFolder(String folderPath, List<Consumer<SpotifyPlaybackEntry>> entryConsumers) {
         if (folderPath == null) {
             throw new IllegalArgumentException("folderPath is null");
         }
@@ -46,13 +48,13 @@ public class DataService {
         try {
             Files.walk(Paths.get(folderPath))
                     .filter(Files::isRegularFile)
-                    .forEach(path -> parseFile(path, factory, mapper, entryConsumer));
+                    .forEach(path -> parseFile(path, factory, mapper, entryConsumers));
         } catch (IOException e) {
             System.err.println("Error walking folder: " + e.getMessage());
         }
     }
 
-    private static void parseFile(Path path, JsonFactory factory, ObjectMapper mapper, Consumer<SpotifyPlaybackEntry> entryConsumer) {
+    private static void parseFile(Path path, JsonFactory factory, ObjectMapper mapper, List<Consumer<SpotifyPlaybackEntry>> entryConsumers) {
         String fileName = path.getFileName().toString().toLowerCase();
         if (!fileName.endsWith(".json") || !fileName.contains("audio") || fileName.startsWith("._")) return;
 
@@ -69,7 +71,9 @@ public class DataService {
             while (parser.nextToken() != JsonToken.END_ARRAY) {
                 ObjectNode node = mapper.readTree(parser);
                 SpotifyPlaybackEntry entry = SpotifyParser.fromJson(new org.json.JSONObject(node.toString()));
-                entryConsumer.accept(entry);
+                for (Consumer<SpotifyPlaybackEntry> consumer : entryConsumers) {
+                    consumer.accept(entry);
+                }
             }
 
         } catch (Exception e) {
@@ -77,7 +81,7 @@ public class DataService {
         }
     }
 
-    private Map<String, Integer> convertMillisToTimeMap(int ms) {
+    private static Map<String, Integer> convertMillisToTimeMap(int ms) {
         int minutes = ms / 60000;
         int hours = minutes / 60;
         int days = hours / 24;
@@ -90,7 +94,7 @@ public class DataService {
         return timeMap;
     }
 
-    private Map<String, String> cleanFirstTrackEver(SpotifyPlaybackEntry firstEntry) {
+    private static Map<String, String> cleanFirstTrackEver(SpotifyPlaybackEntry firstEntry) {
         Map<String, String> firstTrackEver = new HashMap<>();
         if (firstEntry == null) {
             firstTrackEver.put("track", "N/A");
@@ -106,7 +110,7 @@ public class DataService {
         return firstTrackEver;
     }
 
-    private String cleanArtistRevenue(float totalStreamsFloat) {
+    private static String cleanArtistRevenue(float totalStreamsFloat) {
         DecimalFormat df = new DecimalFormat("#.00");
         double royalties = totalStreamsFloat * 0.004;
         return df.format(royalties);
@@ -114,11 +118,64 @@ public class DataService {
 
     //    Methods used in SpotifyApiController.java
 
-    public static class TopStatsCollector {
+    public static class CombinedStatsCollector {
+        public TopStats topStats;
+        public GeneralStats generalStats;
+        public DailyStats dailyStats;
+        public YearlyStats yearlyStats;
+
+        public CombinedStatsCollector(TopStats topStats, GeneralStats generalStats, DailyStats dailyStats, YearlyStats yearlyStats) {
+            this.topStats = topStats;
+            this.generalStats = generalStats;
+            this.dailyStats = dailyStats;
+            this.yearlyStats = yearlyStats;
+        }
+
+        public TopStats getTopStats() { return topStats; }
+        public GeneralStats getGeneralStats() { return generalStats; }
+        public DailyStats getDailyStats() { return dailyStats; }
+        public YearlyStats getYearlyStats() { return yearlyStats; }
+
+    }
+
+    public synchronized void generateStatsIfNeeded(String folderPath) {
+        if (cachedStats == null || !folderPath.equals(lastParsedFolder)) {
+            System.out.println("Parsing new stats for: " + folderPath);
+            cachedStats = computeStats(folderPath);
+            lastParsedFolder = folderPath;
+        } else {
+            System.out.println("Using cached stats for: " + folderPath);
+        }
+    }
+
+    public CombinedStatsCollector getStats() {
+        return cachedStats;
+    }
+
+    public CombinedStatsCollector computeStats(String folderPath) {
+        TopStats topStats = new TopStats();
+        GeneralStats generalStats = new GeneralStats();
+        DailyStats dailyStats = new DailyStats();
+        YearlyStats yearlyStats = new YearlyStats();
+
+        processSessionFolder(folderPath, List.of(
+                topStats::processEntry,
+                generalStats::processEntry,
+                dailyStats::processEntry,
+                yearlyStats::processEntry
+        ));
+        generalStats.finalizeStats();
+        dailyStats.finalizeStats();
+
+        return new CombinedStatsCollector(topStats, generalStats, dailyStats, yearlyStats);
+    }
+
+    public static class TopStats {
         Map<String, TrackStats> trackStatsMap = new LinkedHashMap<>();
         Map<String, ArtistStats> artistStatsMap = new LinkedHashMap<>();
         Map<String, AlbumStats> albumStatsMap = new LinkedHashMap<>();
         Map<String, Integer> podcastStatsMap = new LinkedHashMap<>();
+
 
         public void processEntry(SpotifyPlaybackEntry entry) {
             String track = entry.getTrackName();
@@ -174,14 +231,6 @@ public class DataService {
         public Map<String, Integer> getPodcastStats() { return podcastStatsMap; }
     }
 
-    public TopStatsCollector getTopStats(String folderPath) {
-        TopStatsCollector aggregator = new TopStatsCollector();
-
-        processSessionFolder(folderPath, aggregator::processEntry);
-
-        return aggregator;
-    }
-
     public static class TrackStats {
         String trackName;
         String artist;
@@ -203,7 +252,7 @@ public class DataService {
             if (firstPlayedDate == null || playedAt.compareTo(firstPlayedDate) < 0) {
                 firstPlayedDate = playedAt;
             }
-            playbackHistory.add(entry);
+//            playbackHistory.add(entry);
         }
 
         public void incrementSkip() {
@@ -242,7 +291,7 @@ public class DataService {
                 uniqueStreamsSeen.add(entry.getTrackName());
                 uniqueStreamCount++;
             }
-            playbackHistory.add(entry);
+//            playbackHistory.add(entry);
         }
 
         public void incrementSkip() {
@@ -281,7 +330,7 @@ public class DataService {
                 firstPlayedDate = playedAt;
             }
             hours += ms / 1000.0 / 60.0 / 60.0;
-            playbackHistory.add(entry);
+//            playbackHistory.add(entry);
         }
 
         public void incrementSkip() {
@@ -297,26 +346,55 @@ public class DataService {
     }
 
     public static class GeneralStats {
-        int totalEntries;
-        int totalStreams;
-        int totalUniqueStreams;
-        int totalSkippedTracks;
-        int percentageTimeShuffled;
-        Map<String, Integer> totalMusicTime;
-        Map<String, Integer> totalPodcastTime;
-        String totalArtistRevenue;
-        Map<String, String> firstTrackEver;
+        private int totalEntries;
+        private int totalStreams;
+        private int totalUniqueStreams;
+        private int totalSkippedTracks;
+        private int percentageTimeShuffled;
+        private Map<String, Integer> totalMusicTime;
+        private Map<String, Integer> totalPodcastTime;
+        private String totalArtistRevenue;
+        private Map<String, String> firstTrackEver;
 
-        public GeneralStats(int totalEntries, int totalStreams, int totalUniqueStreams, int totalSkippedTracks, Map<String, Integer> totalMusicTime, int percentageTimeShuffled, Map<String, Integer> totalPodcastTime, String totalArtistRevenue, Map<String, String> firstTrackEver) {
-            this.totalEntries = totalEntries;
-            this.totalStreams = totalStreams;
-            this.totalUniqueStreams = totalUniqueStreams;
-            this.totalSkippedTracks = totalSkippedTracks;
-            this.totalMusicTime = totalMusicTime;
-            this.percentageTimeShuffled = percentageTimeShuffled;
-            this.totalPodcastTime = totalPodcastTime;
-            this.totalArtistRevenue = totalArtistRevenue;
-            this.firstTrackEver = firstTrackEver;
+        private int rawMusicTime = 0;
+        private int rawPodcastTime = 0;
+        private int shuffleCount = 0;
+        private Set<String> uniqueTracks = new HashSet<>();
+        private SpotifyPlaybackEntry firstEntry = null;
+
+        public void processEntry(SpotifyPlaybackEntry entry) {
+            if (entry.getTrackName() != null) {
+                totalEntries++;
+                rawMusicTime += entry.getMsPlayed();
+
+                if (entry.isShuffle()) shuffleCount++;
+
+                if (entry.getMsPlayed() >= 30000) {
+                    totalStreams++;
+                    uniqueTracks.add(entry.getTrackName());
+                }
+
+                if (entry.getMsPlayed() <= 5000 && entry.isSkipped()) {
+                    totalSkippedTracks++;
+                }
+
+                if (firstEntry == null || Instant.parse(entry.getTimestamp()).isBefore(Instant.parse(firstEntry.getTimestamp()))) {
+                    firstEntry = entry;
+                }
+            }
+
+            if (entry.getPodcastName() != null) {
+                rawPodcastTime += entry.getMsPlayed();
+            }
+        }
+
+        public void finalizeStats() {
+            totalUniqueStreams = uniqueTracks.size();
+            percentageTimeShuffled = totalEntries == 0 ? 0 : (int) Math.round((double) shuffleCount / totalEntries * 100);
+            totalArtistRevenue = cleanArtistRevenue((float) totalStreams);
+            totalMusicTime = convertMillisToTimeMap(rawMusicTime);
+            totalPodcastTime = convertMillisToTimeMap(rawPodcastTime);
+            firstTrackEver = cleanFirstTrackEver(firstEntry);
         }
 
         public int getTotalEntries() { return totalEntries; }
@@ -328,73 +406,30 @@ public class DataService {
         public Map<String, Integer> getTotalPodcastTime() { return totalPodcastTime; }
         public String getTotalArtistRevenue() { return totalArtistRevenue; }
         public Map<String, String> getFirstTrackEver() { return firstTrackEver; }
-    }
 
-    public GeneralStats getGeneralStats(String folderPath) {
-        int[] totalEntries = {0};
-        int[] totalStreams = {0};
-        int[] totalSkippedTracks = {0};
-        int[] totalMusicTime = {0};
-        int[] totalPodcastTime = {0};
-        int[] tracksOnShuffle = {0};
-        SpotifyPlaybackEntry[] firstEntry = {null};
-        Set<String> uniqueTracks = new HashSet<>();
-
-        processSessionFolder(folderPath, entry -> {
-            if (entry.getTrackName() != null) {
-                totalEntries[0]++;
-                totalMusicTime[0] += entry.getMsPlayed();
-                if (entry.isShuffle()) {
-                    tracksOnShuffle[0]++;
-                }
-            }
-            if (entry.getTrackName() != null && entry.getMsPlayed() >= 30000) {
-                totalStreams[0]++;
-                uniqueTracks.add(entry.getTrackName());
-            }
-            if (entry.getTrackName() != null && entry.getMsPlayed() <= 5000 && entry.isSkipped()) {
-                totalSkippedTracks[0]++;
-            }
-            if (entry.getPodcastName() != null) {
-                totalPodcastTime[0] += entry.getMsPlayed();
-            }
-
-//           First track ever logic
-            if (entry.getTrackName() == null || entry.getTimestamp() == null) return;
-
-            if (firstEntry[0] == null || Instant.parse(entry.getTimestamp()).isBefore(Instant.parse(firstEntry[0].getTimestamp()))) {
-                firstEntry[0] = entry;
-            }
-        });
-
-
-//      Start data formatting/manipulation
-        int percentageTimeShuffled = totalEntries[0] == 0 ? 0 : (int) Math.round(((double) tracksOnShuffle[0] / totalEntries[0]) * 100);
-        int totalUniqueStreams = uniqueTracks.size();
-        String totalArtistRevenue = cleanArtistRevenue((float) totalStreams[0]);
-        Map<String, Integer> totalMusicTimeMap = convertMillisToTimeMap(totalMusicTime[0]);
-        Map<String, Integer> totalPodcastTimeMap = convertMillisToTimeMap(totalPodcastTime[0]);
-        Map <String, String> firstTrackEver = cleanFirstTrackEver(firstEntry[0]);
-
-        return new GeneralStats(
-                totalEntries[0],
-                totalStreams[0],
-                totalUniqueStreams,
-                totalSkippedTracks[0],
-                totalMusicTimeMap,
-                percentageTimeShuffled,
-                totalPodcastTimeMap,
-                totalArtistRevenue,
-                firstTrackEver
-        );
     }
 
     public static class DailyStats {
+        private final Map<String, DailyStats> dailyStatsMap = new LinkedHashMap<>();
+
         public int streams = 0;
         public double hours = 0;
         public Map<String, Integer> topTracks = new LinkedHashMap<>();
         public Map<String, Integer> topArtists = new LinkedHashMap<>();
 
+        private DailyStats() {}
+
+        public void processEntry(SpotifyPlaybackEntry entry) {
+            int ms = entry.getMsPlayed();
+            if (ms >= 30000) {
+                String timestamp = entry.getTimestamp();
+                ZonedDateTime zdt = ZonedDateTime.parse(timestamp);
+                String date = zdt.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"));
+
+                DailyStats daily = dailyStatsMap.computeIfAbsent(date, k -> new DailyStats());
+                daily.addPlay(entry);
+            }
+        }
         void addPlay(SpotifyPlaybackEntry entry) {
             streams++;
             hours += entry.getMsPlayed() / 1000.0 / 60.0 / 60.0;
@@ -408,6 +443,7 @@ public class DataService {
                 topArtists.merge(artistName, 1, Integer::sum);
             }
         }
+
         void finalizeStats() {
             topTracks = topTracks.entrySet().stream()
                     .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
@@ -429,48 +465,26 @@ public class DataService {
                             LinkedHashMap::new
                     ));
         }
-    }
-
-    public Map<String, DailyStats> getTopDays(String folderPath) {
-        Map<String, DailyStats> map = new LinkedHashMap<>();
-
-        processSessionFolder(folderPath, entry -> {
-            String timeStamp = entry.getTimestamp();
-            int ms = entry.getMsPlayed();
-
-            if(ms >= 30000) {
-                ZonedDateTime zdt = ZonedDateTime.parse(timeStamp);
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy");
-                String readableTimeStamp = zdt.format(formatter);
-                DailyStats daily = map.computeIfAbsent(readableTimeStamp, k -> new DailyStats());
-                daily.addPlay(entry);
-            }
-        });
-        for (DailyStats dailyStats : map.values()) {
-            dailyStats.finalizeStats();
+        public Map<String, DailyStats> getDailyStatsMap() {
+            return dailyStatsMap;
         }
-        return map;
+
+        public int getStreams() { return streams; }
+        public double getHours() { return hours; }
+        public Map<String, Integer> getTopTracks() { return topTracks; }
+        public Map<String, Integer> getTopArtists() { return topArtists; }
+
     }
 
     public static class YearlyStats {
+        private final Map<String, YearlyStats> yearlyStatsMap = new LinkedHashMap<>();
+        private final Set<String> songsSeen = new HashSet<>();
+
         public int streams = 0;
         public double hours = 0;
         public int uniqueStreams = 0;
 
-        void addPlay(int ms, boolean uniquePlay) {
-            streams++;
-            hours += ms / 1000.0 / 60.0 / 60.0;
-            if(uniquePlay) {
-                uniqueStreams++;
-            }
-        }
-    }
-
-    public Map<String, YearlyStats> getTopYears (String folderPath) {
-        Map<String, YearlyStats> map = new LinkedHashMap<>();
-        Set<String> songsSeen = new HashSet<>();
-
-        processSessionFolder(folderPath, entry -> {
+        public void processEntry(SpotifyPlaybackEntry entry) {
             String timeStamp = entry.getTimestamp();
             int ms = entry.getMsPlayed();
             String track = entry.getSpotifyTrackUri();
@@ -479,16 +493,27 @@ public class DataService {
                 ZonedDateTime zdt = ZonedDateTime.parse(timeStamp);
                 String year = String.valueOf(zdt.getYear());
 
-                YearlyStats yearly = map.computeIfAbsent(year, k -> new YearlyStats());
-                if (songsSeen.contains(track)) {
-                    yearly.addPlay(ms, false);
-                } else {
-                    yearly.addPlay(ms, true);
-                    songsSeen.add(track);
-                }
+                YearlyStats stats = yearlyStatsMap.computeIfAbsent(year, k -> new YearlyStats());
+                boolean isUnique = songsSeen.add(track);
+                stats.addPlay(ms, isUnique);
             }
-        });
+        }
 
-        return map;
+        private void addPlay(int ms, boolean uniquePlay) {
+            streams++;
+            hours += ms / 1000.0 / 60.0 / 60.0;
+            if(uniquePlay) {
+                uniqueStreams++;
+            }
+        }
+
+        public Map<String, YearlyStats> getYearlyStatsMap() {
+            return yearlyStatsMap;
+        }
+
+        public int getStreams() { return streams; }
+        public double getHours() { return hours; }
+        public int getUniqueStreams() { return uniqueStreams; }
+
     }
 }
