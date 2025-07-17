@@ -39,13 +39,13 @@ public class SpotifyApiController {
     }
 
     @GetMapping("/top-stats")
-    public ResponseEntity<DataService.TopStats> getTopStats() {
+    public ResponseEntity<DataService.TopStatsCollector> getTopStats() {
         ensureStatsAreLoaded();
         return ResponseEntity.ok(dataService.getStats().getTopStats());
     }
 
     @GetMapping("/general-stats")
-    public ResponseEntity<DataService.GeneralStats> getGeneralStats() {
+    public ResponseEntity<DataService.GeneralStatsCollector> getGeneralStats() {
         ensureStatsAreLoaded();
         return ResponseEntity.ok(dataService.getStats().getGeneralStats());
     }

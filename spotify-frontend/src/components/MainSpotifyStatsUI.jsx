@@ -190,7 +190,7 @@ function DayStatRow({ index, day, data }) {
             </StyledRow>
             {expanded && (
                 <Box style={{ marginLeft: '24px', marginTop: '8px' }}>
-                    <div><b>Top Songs</b></div>
+                    <div style={{ marginTop: '0.5rem' }}><b>Top Songs</b></div>
                     <ul>
                         {Object.entries(data.topTracks || {}).map(([track, count]) => (
                             <li key={track}>{track} — {count} stream{count !== 1 ? 's' : ''}</li>

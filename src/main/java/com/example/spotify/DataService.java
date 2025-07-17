@@ -116,22 +116,21 @@ public class DataService {
         return df.format(royalties);
     }
 
-
     public static class CombinedStatsCollector {
-        public TopStats topStats;
-        public GeneralStats generalStats;
+        public TopStatsCollector topStats;
+        public GeneralStatsCollector generalStats;
         DailyStatsCollector dailyStats;
         YearlyStatsCollector yearlyStats;
 
-        public CombinedStatsCollector(TopStats topStats, GeneralStats generalStats, DailyStatsCollector dailyStats, YearlyStatsCollector yearlyStats) {
+        public CombinedStatsCollector(TopStatsCollector topStats, GeneralStatsCollector generalStats, DailyStatsCollector dailyStats, YearlyStatsCollector yearlyStats) {
             this.topStats = topStats;
             this.generalStats = generalStats;
             this.dailyStats = dailyStats;
             this.yearlyStats = yearlyStats;
         }
 
-        public TopStats getTopStats() { return topStats; }
-        public GeneralStats getGeneralStats() { return generalStats; }
+        public TopStatsCollector getTopStats() { return topStats; }
+        public GeneralStatsCollector getGeneralStats() { return generalStats; }
         public DailyStatsCollector getDailyStats() { return dailyStats; }
         public YearlyStatsCollector getYearlyStats() { return yearlyStats; }
 
@@ -152,8 +151,8 @@ public class DataService {
     }
 
     public CombinedStatsCollector computeStats(String folderPath) {
-        TopStats topStats = new TopStats();
-        GeneralStats generalStats = new GeneralStats();
+        TopStatsCollector topStats = new TopStatsCollector();
+        GeneralStatsCollector generalStats = new GeneralStatsCollector();
         DailyStatsCollector dailyStats = new DailyStatsCollector();
         YearlyStatsCollector yearlyStats = new YearlyStatsCollector();
 
@@ -169,7 +168,7 @@ public class DataService {
         return new CombinedStatsCollector(topStats, generalStats, dailyStats, yearlyStats);
     }
 
-    public static class TopStats {
+    public static class TopStatsCollector {
         Map<String, TrackStats> trackStatsMap = new LinkedHashMap<>();
         Map<String, ArtistStats> artistStatsMap = new LinkedHashMap<>();
         Map<String, AlbumStats> albumStatsMap = new LinkedHashMap<>();
@@ -344,7 +343,7 @@ public class DataService {
         public List<SpotifyPlaybackEntry> getPlaybackHistory() { return playbackHistory; }
     }
 
-    public static class GeneralStats {
+    public static class GeneralStatsCollector {
         private int totalEntries;
         private int totalStreams;
         private int totalUniqueStreams;
@@ -438,7 +437,7 @@ public class DataService {
 
         public int streams = 0;
         public double hours = 0;
-        public Map<String, Integer> topTracks = new LinkedHashMap<>();
+        public Map<TrackInfo, Integer> topTracks = new LinkedHashMap<>();
         public Map<String, Integer> topArtists = new LinkedHashMap<>();
 
         private DailyStats() {}
@@ -449,8 +448,9 @@ public class DataService {
 
             String trackName = entry.getTrackName();
             String artistName = entry.getArtistName();
-            if (trackName != null) {
-                topTracks.merge(trackName, 1, Integer::sum);
+            if (trackName != null && artistName != null) {
+                TrackInfo trackInfo = new TrackInfo(trackName, artistName);
+                topTracks.merge(trackInfo, 1, Integer::sum);
             }
             if (artistName != null) {
                 topArtists.merge(artistName, 1, Integer::sum);
@@ -459,7 +459,7 @@ public class DataService {
 
         void finalizeStats() {
             topTracks = topTracks.entrySet().stream()
-                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                    .sorted(Map.Entry.<TrackInfo, Integer>comparingByValue().reversed())
                     .limit(5)
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
@@ -521,4 +521,19 @@ public class DataService {
             }
         }
     }
+
+    public record TrackInfo(String name, String artist) {
+        @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (!(o instanceof TrackInfo)) return false;
+                TrackInfo that = (TrackInfo) o;
+                return name.equals(that.name) && artist.equals(that.artist);
+            }
+
+        @Override
+            public String toString() {
+                return name + " (" + artist + ")";
+            }
+        }
 }
