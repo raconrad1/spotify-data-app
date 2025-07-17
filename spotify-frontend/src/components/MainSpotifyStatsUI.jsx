@@ -56,12 +56,13 @@ const BackToTopButton = () => {
     );
 };
 
-const StyledRow = styled(Box)(({ theme }) => ({
+const StyledRow = styled(Box)(({theme}) => ({
     display: 'flex',
     justifyContent: 'space-between',
     paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(1),
     borderBottom: '1px solid #e0e0e0',
+    alignItems: "center",
 }));
 
 function StatBox({ children }) {
@@ -178,7 +179,7 @@ function DayStatRow({ index, day, data }) {
     const [expanded, setExpanded] = useState(false);
 
     return (
-        <Box key={day} sx={{ mb: 2 }}>
+        <Box key={day} style={{ padding: "5px 0 5px 0"}}>
             <StyledRow>
                 <span><b>{index + 1}.</b> {day}</span>
                 <span>{addNumberCommas(data.streams)} streams</span>
@@ -188,17 +189,17 @@ function DayStatRow({ index, day, data }) {
                 </button>
             </StyledRow>
             {expanded && (
-                <Box sx={{ ml: 3, mt: 1 }}>
-                    <div><b>Top Artists:</b></div>
-                    <ul>
-                        {Object.entries(data.topArtists || {}).map(([artist, count]) => (
-                            <li key={artist}>{artist} — {count} stream{count !== 1 ? 's' : ''}</li>
-                        ))}
-                    </ul>
-                    <div style={{ marginTop: '0.5rem' }}><b>Top Tracks:</b></div>
+                <Box style={{ marginLeft: '24px', marginTop: '8px' }}>
+                    <div><b>Top Songs</b></div>
                     <ul>
                         {Object.entries(data.topTracks || {}).map(([track, count]) => (
                             <li key={track}>{track} — {count} stream{count !== 1 ? 's' : ''}</li>
+                        ))}
+                    </ul>
+                    <div style={{ marginTop: '0.5rem' }}><b>Top Artists</b></div>
+                    <ul>
+                        {Object.entries(data.topArtists || {}).map(([artist, count]) => (
+                            <li key={artist}>{artist} — {count} stream{count !== 1 ? 's' : ''}</li>
                         ))}
                     </ul>
                 </Box>
@@ -351,7 +352,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
             {Object.entries(topYearsData)
                 .sort((a, b) => b[1].year - a[1].year)
                 .map(([year, { streams, hours, uniqueStreams }]) => (
-                    <StyledRow>
+                    <StyledRow style={{ paddingTop: "10px", paddingBottom: "10px" }}>
                         <span><b>{year}</b></span>
                         <span>{addNumberCommas(streams)} streams</span>
                         <span>{(hours ?? 0).toFixed(1)} hours listened</span>
