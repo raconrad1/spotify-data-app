@@ -11,10 +11,25 @@ export default function Upload({ onUploadComplete }) {
         borderRadius: "15px",
         margin: "10px",
         padding: "1rem",
-        width: "54%",
+        width: "60%",
+        // boxShadow: "12px 12px 2px 1px rgb(0 0 255 / 0.2)",
         boxShadow: "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
         // boxShadow: "0 4px 8px 0 #1db954, 0 6px 20px 0 #20d660"
+    }
 
+    const mainBox = {
+        backgroundColor: "white",
+        marginLeft: "auto",
+        marginRight: "auto",
+        width: "83%",
+        textAlign: "center",
+        marginTop: "1rem",
+        display: "flex",
+        justifyContent: "center",
+        flexDirection: "column",
+        alignItems: "center",
+        borderRadius: "50px",
+        boxShadow: "5px 4px 10px 5px rgba(0, 0, 0, 0.2), 5px 6px 15px 5px rgba(0, 0, 0, 0.19)"
     }
 
     function HoverLink({ href, children }) {
@@ -85,7 +100,8 @@ export default function Upload({ onUploadComplete }) {
                 borderRadius: "60px",
                 cursor: "pointer",
                 backgroundColor: isUploadHovered ? "#09ed5a" : "#2af572",
-                transition: "background-color 0.3s ease-out",
+                transition: "all 0.2s ease-out",
+                transform: isUploadHovered ? "scale(1.05)" : "scale(1)",
                 boxShadow: "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)"
             }}
             htmlFor="file-upload"
@@ -104,7 +120,7 @@ export default function Upload({ onUploadComplete }) {
     );
 
     return (
-        <div style={{ textAlign: "center", marginTop: "1rem", display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
+        <div style={mainBox}>
             <h1>Explore your Spotify listening history!</h1>
             <div style={{ ...textBox, marginTop: "2rem"}}>
                 <h2>How it works</h2>
@@ -150,14 +166,13 @@ export default function Upload({ onUploadComplete }) {
                 </p>
             </div>
             {uploadButton}
-            <p>
+            <p style={{ width: "55%", fontSize: ".85rem" }}>
                 If you want to do a deep dive on how the raw data looks, visit{" "}
                 <HoverLink href="https://support.spotify.com/us/article/understanding-my-data/#_gl=1*13r3kp5*_gcl_au*MjA4MDgyNTQ4Mi4xNzQ2MTA1NDI1">
                     Spotify's page on understanding the data
                 </HoverLink>{" "}
-                and find the Extended Streaming History section.
+                and find the "Extended Streaming History" section.
             </p>
-
             {error && <p style={{ color: 'red' }}>{error}</p>}
         </div>
     );
