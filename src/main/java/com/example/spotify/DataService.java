@@ -56,7 +56,7 @@ public class DataService {
 
     private static void parseFile(Path path, JsonFactory factory, ObjectMapper mapper, List<Consumer<SpotifyPlaybackEntry>> entryConsumers) {
         String fileName = path.getFileName().toString().toLowerCase();
-        if (!fileName.endsWith(".json") || !fileName.contains("audio") || fileName.startsWith("._")) return;
+        if (!fileName.endsWith(".json") || fileName.startsWith("._")) return;
 
         System.out.println("Parsing: " + fileName);
 
@@ -83,14 +83,13 @@ public class DataService {
 
     private static Map<String, Integer> convertMillisToTimeMap(int ms) {
         int minutes = ms / 60000;
-        int hours = minutes / 60;
-        int days = hours / 24;
-
+        int hours = ms / (1000 * 60 * 60);
+        int days = ms / (1000 * 60 * 60 * 24);
+//
         Map<String, Integer> timeMap = new HashMap<>();
         timeMap.put("minutes", minutes);
         timeMap.put("hours", hours);
         timeMap.put("days", days);
-
         return timeMap;
     }
 
@@ -100,6 +99,7 @@ public class DataService {
             firstTrackEver.put("track", "N/A");
             firstTrackEver.put("timeStamp", "N/A");
             firstTrackEver.put("artist", "N/A");
+            return firstTrackEver;
         }
         ZonedDateTime zdt = ZonedDateTime.parse(firstEntry.getTimestamp());
         String formatted = zdt.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy 'at' h:mm a"));
@@ -208,9 +208,9 @@ public class DataService {
                 }
 
                 // AlbumStats
-                String albumKey = album + " - " + artist;
-                albumStatsMap.putIfAbsent(albumKey, new AlbumStats(album, artist, playedAt, entry));
-                AlbumStats albumStats = albumStatsMap.get(albumKey);
+                Set<String> artistSet = new HashSet<>();
+                albumStatsMap.putIfAbsent(album, new AlbumStats(album, artistSet, playedAt, entry));
+                AlbumStats albumStats = albumStatsMap.get(album);
                 if (ms >= 30000) {
                     albumStats.addStream(ms, playedAt, entry);
                 }
@@ -218,7 +218,7 @@ public class DataService {
                     albumStats.incrementSkip();
                 }
 
-            } else if (podcast != null) {
+            } else if (podcast != null && ms > 5000) {
                 podcastStatsMap.put(podcast, podcastStatsMap.containsKey(podcast) ? podcastStatsMap.get(podcast) + 1 : 1);
             }
         }
@@ -306,14 +306,14 @@ public class DataService {
 
     public static class AlbumStats {
         String album;
-        String artist;
+        Set<String> artist = new HashSet<>();
         int streamCount = 0;
         int skipCount = 0;
         double hours = 0;
         String firstPlayedDate = null;
         List<SpotifyPlaybackEntry> playbackHistory = new ArrayList<>();
 
-        public AlbumStats(String album, String artist, String playedAt, SpotifyPlaybackEntry entry) {
+        public AlbumStats(String album, Set<String> artist, String playedAt, SpotifyPlaybackEntry entry) {
             this.album = album;
             this.artist = artist;
             this.streamCount = 1;
@@ -327,6 +327,7 @@ public class DataService {
             if (firstPlayedDate == null || playedAt.compareTo(firstPlayedDate) < 0) {
                 firstPlayedDate = playedAt;
             }
+            artist.add(entry.getArtistName());
             hours += ms / 1000.0 / 60.0 / 60.0;
 //            playbackHistory.add(entry);
         }
@@ -335,7 +336,7 @@ public class DataService {
             skipCount++;
         }
         public String getAlbum() { return album; }
-        public String getArtist() { return artist; }
+        public String getArtist() { return String.join(", ", artist); }
         public int getStreamCount() { return streamCount; }
         public double getHours() { return hours; }
         public int getSkipCount() { return skipCount; }
@@ -490,14 +491,20 @@ public class DataService {
             String timeStamp = entry.getTimestamp();
             int ms = entry.getMsPlayed();
             String track = entry.getSpotifyTrackUri();
+            String podcast = entry.getPodcastName();
 
-            if(ms >= 30000) {
+            if((track != null && ms >= 30000) || (podcast != null && ms > 5000)) {
                 ZonedDateTime zdt = ZonedDateTime.parse(timeStamp);
                 String year = String.valueOf(zdt.getYear());
 
                 YearlyStats stats = yearlyStatsMap.computeIfAbsent(year, k -> new YearlyStats());
-                boolean isUnique = songsSeen.add(track);
-                stats.addPlay(ms, isUnique);
+                if(track != null) {
+                    boolean isUnique = songsSeen.add(track);
+                    stats.addPlay(ms, isUnique);
+                }
+                if(podcast != null) {
+                    stats.addPodcastPlay(ms);
+                }
             }
         }
 
@@ -509,16 +516,24 @@ public class DataService {
     public static class YearlyStats {
 
         public int streams = 0;
-        public double hours = 0;
+        public double musicHours = 0;
         public int uniqueStreams = 0;
+        public int podcastPlays = 0;
+        public double podcastHours = 0;
+
 
 
         private void addPlay(int ms, boolean uniquePlay) {
             streams++;
-            hours += ms / 1000.0 / 60.0 / 60.0;
+            musicHours += ms / 1000.0 / 60.0 / 60.0;
             if(uniquePlay) {
                 uniqueStreams++;
             }
+        }
+
+        private void addPodcastPlay(int ms) {
+            podcastPlays++;
+            podcastHours += ms / 1000.0 / 60.0 / 60.0;
         }
     }
 

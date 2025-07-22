@@ -143,7 +143,7 @@ function GeneralStats({ generalStatsData }) {
 
     const firstTrackEverContent = generalStatsData?.firstTrackEver ? (
         <StatBox>
-            <p>The first track you've ever listened to on Spotify was <b>{generalStatsData.firstTrackEver["track"]} by {generalStatsData.firstTrackEver["artist"]}</b>. It was played on {generalStatsData.firstTrackEver["timeStamp"]}.</p>
+            <p>The first track you've ever listened to on Spotify was <b>{generalStatsData.firstTrackEver["track"]} by <em>{generalStatsData.firstTrackEver["artist"]}</em></b>. It was played on {generalStatsData.firstTrackEver["timeStamp"]}.</p>
         </StatBox>
     ) : (
         <p>Loading first track ever...</p>
@@ -231,7 +231,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                     <StyledRow key={trackName}>
                         <span><b>{index + 1}.</b></span>
                         <div style={{ display: "flex", flexDirection: "column" }}>
-                            <span>{trackName}</span>
+                            <span>{stats.trackName}</span>
                             <span><i>{stats.artist}</i></span>
                         </div>
                         <span>{addNumberCommas(stats.streamCount)} streams</span>
@@ -251,7 +251,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                     <StyledRow key={trackName}>
                         <span><b>{index + 1}.</b></span>
                         <div style={{ display: "flex", flexDirection: "column" }}>
-                            <span>{trackName}</span>
+                            <span>{stats.trackName}</span>
                             <span><i>{stats.artist}</i></span>
                         </div>
                         <span>{addNumberCommas(stats.streamCount)} streams</span>
@@ -302,7 +302,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                     <StyledRow>
                         <span><b>{index + 1}.</b></span>
                         <div style={{ display: "flex", flexDirection: "column" }}>
-                            <span>{album}</span>
+                            <span>{stats.album}</span>
                             <span><i>{stats.artist}</i></span>
                         </div>
                         <span>{addNumberCommas(stats.streamCount)} streams</span>
@@ -321,7 +321,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                     <StyledRow>
                         <span><b>{index + 1}.</b></span>
                         <div style={{ display: "flex", flexDirection: "column" }}>
-                            <span>{trackName}</span>
+                            <span>{stats.trackName}</span>
                             <span><i>{stats.artist}</i></span>
                         </div>
                         <span>{addNumberCommas(stats.skipCount)} skips</span>
@@ -352,12 +352,14 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
         <Box>
             {Object.entries(topYearsData)
                 .sort((a, b) => b[1].year - a[1].year)
-                .map(([year, { streams, hours, uniqueStreams }]) => (
+                .map(([year, { streams, musicHours, uniqueStreams, podcastPlays, podcastHours }]) => (
                     <StyledRow style={{ paddingTop: "10px", paddingBottom: "10px" }}>
                         <span><b>{year}</b></span>
                         <span>{addNumberCommas(streams)} streams</span>
-                        <span>{(hours ?? 0).toFixed(1)} hours listened</span>
+                        <span>{(musicHours ?? 0).toFixed(1)} hours listened to music</span>
                         <span>{addNumberCommas(uniqueStreams)} unique streams</span>
+                        <span>{addNumberCommas(podcastPlays)} podcast plays</span>
+                        <span>{(podcastHours ?? 0).toFixed(1)} hours listened to podcasts</span>
                     </StyledRow>
                 ))}
         </Box>
