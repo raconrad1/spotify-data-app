@@ -193,7 +193,7 @@ public class DataService {
                 if (ms >= 30000) {
                     trackStats.addStream(playedAt, entry);
                 }
-                if (entry.isSkipped()) {
+                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || !entry.getReasonEnd().equals("trackdone"))) {
                     trackStats.incrementSkip();
                 }
 
@@ -203,7 +203,7 @@ public class DataService {
                 if (ms >= 30000) {
                     artistStats.addStream(playedAt, entry);
                 }
-                if (entry.isSkipped()) {
+                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || !entry.getReasonEnd().equals("trackdone"))) {
                     artistStats.incrementSkip();
                 }
 
@@ -214,7 +214,7 @@ public class DataService {
                 if (ms >= 30000) {
                     albumStats.addStream(ms, playedAt, entry);
                 }
-                if (entry.isSkipped()) {
+                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || !entry.getReasonEnd().equals("trackdone"))) {
                     albumStats.incrementSkip();
                 }
 
@@ -373,7 +373,7 @@ public class DataService {
                     uniqueTracks.add(entry.getTrackName());
                 }
 
-                if (entry.getMsPlayed() <= 5000 && entry.isSkipped()) {
+                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || !entry.getReasonEnd().equals("trackdone"))) {
                     totalSkippedTracks++;
                 }
 
