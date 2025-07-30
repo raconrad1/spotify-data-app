@@ -182,12 +182,19 @@ function DayStatRow({ index, day, data }) {
     return (
         <Box key={day} style={{ padding: "5px 0 5px 0"}}>
             <StyledRow>
-                <span><b>{index + 1}.</b> {day}</span>
-                <span>{addNumberCommas(data.streams)} streams</span>
-                <span>{(data.hours ?? 0).toFixed(1)} hours listened</span>
-                <button size="small" onClick={() => setExpanded(!expanded)}>
-                    {expanded ? 'Hide Details' : 'Show Details'}
-                </button>
+                <div style={{
+                    display: "flex",
+                    margin: "auto",
+                    justifyContent: "space-between",
+                    width: "100%",
+                }}>
+                    <span><b>{index + 1}.</b> {day}</span>
+                    <span>{addNumberCommas(data.streams)} streams</span>
+                    <span>{(data.hours ?? 0).toFixed(1)} hours listened</span>
+                    <button size="small" onClick={() => setExpanded(!expanded)}>
+                        {expanded ? 'Hide Details' : 'Show Details'}
+                    </button>
+                </div>
             </StyledRow>
             {expanded && (
                 <Box style={{ marginLeft: '24px', marginTop: '8px' }}>
@@ -353,13 +360,28 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
             {Object.entries(topYearsData)
                 .sort((a, b) => b[1].year - a[1].year)
                 .map(([year, { streams, musicHours, uniqueStreams, podcastPlays, podcastHours }]) => (
-                    <StyledRow style={{ paddingTop: "10px", paddingBottom: "10px" }}>
+                    <StyledRow style={{ paddingTop: "20px", paddingBottom: "20px" }}>
                         <span><b>{year}</b></span>
-                        <span>{addNumberCommas(streams)} streams</span>
-                        <span>{(musicHours ?? 0).toFixed(1)} hours listened to music</span>
-                        <span>{addNumberCommas(uniqueStreams)} unique streams</span>
-                        <span>{addNumberCommas(podcastPlays)} podcast plays</span>
-                        <span>{(podcastHours ?? 0).toFixed(1)} hours listened to podcasts</span>
+                        <div style={{
+                            display: "flex",
+                            margin: "auto",
+                            justifyContent: "space-evenly",
+                            width: "80%",
+                            borderRight: "1px solid rgba(66, 135, 245, 0.5)"
+                        }}>
+                            <span>{addNumberCommas(streams)} streams</span>
+                            <span>{(musicHours ?? 0).toFixed(1)} hours listened</span>
+                            <span>{addNumberCommas(uniqueStreams)} unique streams</span>
+                        </div>
+                        <div style={{
+                            display: "flex",
+                            margin: "auto",
+                            justifyContent: "space-evenly",
+                            width: "60%",
+                        }}>
+                            <span>{addNumberCommas(podcastPlays)} podcast plays</span>
+                            <span>{(podcastHours ?? 0).toFixed(1)} hours listened</span>
+                        </div>
                     </StyledRow>
                 ))}
         </Box>
@@ -455,7 +477,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                 </TabPanel>
 
                 <TabPanel value="8">
-                    <TabPanelContent description="Here are some stats for each year that you've used Spotify, starting from the beginning!">
+                    <TabPanelContent description="Here are some stats for each year that you've used Spotify, starting from the beginning! Music on the left, podcasts on the right.">
                         {topYearsContent}
                     </TabPanelContent>
                 </TabPanel>
