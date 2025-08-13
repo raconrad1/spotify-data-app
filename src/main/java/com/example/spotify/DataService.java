@@ -182,6 +182,7 @@ public class DataService {
             String playedAt = entry.getTimestamp();
             int ms = entry.getMsPlayed();
             String podcast = entry.getPodcastName();
+            Set<String> trueSkipCategories = new HashSet<>(Arrays.asList("backbtn", "unknown", "endplay", "fwdbtn"));
 
 
             if (track != null || artist != null) {
@@ -193,7 +194,7 @@ public class DataService {
                 if (ms >= 30000) {
                     trackStats.addStream(playedAt, entry);
                 }
-                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || !entry.getReasonEnd().equals("trackdone"))) {
+                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || trueSkipCategories.contains(entry.getReasonEnd()))) {
                     trackStats.incrementSkip();
                 }
 
@@ -203,7 +204,7 @@ public class DataService {
                 if (ms >= 30000) {
                     artistStats.addStream(playedAt, entry);
                 }
-                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || !entry.getReasonEnd().equals("trackdone"))) {
+                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || trueSkipCategories.contains(entry.getReasonEnd()))) {
                     artistStats.incrementSkip();
                 }
 
@@ -214,7 +215,7 @@ public class DataService {
                 if (ms >= 30000) {
                     albumStats.addStream(ms, playedAt, entry);
                 }
-                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || !entry.getReasonEnd().equals("trackdone"))) {
+                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || trueSkipCategories.contains(entry.getReasonEnd()))) {
                     albumStats.incrementSkip();
                 }
 
@@ -240,7 +241,6 @@ public class DataService {
         public TrackStats(String trackName, String artist, String playedAt, SpotifyPlaybackEntry entry) {
             this.trackName = trackName;
             this.artist = artist;
-            this.streamCount = 1;
             this.firstPlayedDate = playedAt;
             this.playbackHistory.add(entry);
         }
@@ -275,7 +275,6 @@ public class DataService {
 
         public ArtistStats(String artist, String playedAt, SpotifyPlaybackEntry entry) {
             this.artist = artist;
-            this.streamCount = 1;
             this.firstPlayedDate = playedAt;
             this.playbackHistory.add(entry);
         }
@@ -316,7 +315,6 @@ public class DataService {
         public AlbumStats(String album, Set<String> artist, String playedAt, SpotifyPlaybackEntry entry) {
             this.album = album;
             this.artist = artist;
-            this.streamCount = 1;
             this.hours = 0;
             this.firstPlayedDate = playedAt;
             this.playbackHistory.add(entry);
@@ -360,6 +358,7 @@ public class DataService {
         private int shuffleCount = 0;
         private Set<String> uniqueTracks = new HashSet<>();
         private SpotifyPlaybackEntry firstEntry = null;
+        Set<String> trueSkipCategories = new HashSet<>(Arrays.asList("backbtn", "unknown", "endplay", "fwdbtn"));
 
         public void processEntry(SpotifyPlaybackEntry entry) {
             if (entry.getTrackName() != null) {
@@ -373,7 +372,7 @@ public class DataService {
                     uniqueTracks.add(entry.getTrackName());
                 }
 
-                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || !entry.getReasonEnd().equals("trackdone"))) {
+                if (entry.getMsPlayed() <= 5000 && (entry.isSkipped() || trueSkipCategories.contains(entry.getReasonEnd()))) {
                     totalSkippedTracks++;
                 }
 
