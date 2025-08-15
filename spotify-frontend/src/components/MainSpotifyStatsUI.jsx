@@ -56,6 +56,15 @@ const BackToTopButton = () => {
     );
 };
 
+const StyledRow = styled(Box)(({theme}) => ({
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    borderBottom: '1px solid #e0e0e0',
+}));
+
 function GeneralStatBox({ children }) {
     return (
         <div style={{
@@ -189,18 +198,38 @@ function DayStatRow({ index, day, data }) {
             </StyledRow>
             {expanded && (
                 <Box style={{ marginLeft: '24px', marginTop: '8px' }}>
-                    <div style={{ marginTop: '0.5rem' }}><b>Top Songs</b></div>
-                    <ul>
-                        {Object.entries(data.topTracks || {}).map(([track, count]) => (
-                            <li key={track}>{track} — {count} stream{count !== 1 ? 's' : ''}</li>
-                        ))}
-                    </ul>
-                    <div style={{ marginTop: '0.5rem' }}><b>Top Artists</b></div>
-                    <ul>
-                        {Object.entries(data.topArtists || {}).map(([artist, count]) => (
-                            <li key={artist}>{artist} — {count} stream{count !== 1 ? 's' : ''}</li>
-                        ))}
-                    </ul>
+                    {Object.keys(data.topTracks || {}).length === 0 ? (
+                        <div></div>
+                    ) : (
+                        <div>
+                            <div style={{ marginTop: '0.5rem' }}><b>Top Songs</b></div>
+                            <ul>
+                                {Object.entries(data.topTracks || {}).map(([track, count]) => (
+                                    <li key={track}>{track} — {count} stream{count !== 1 ? 's' : ''}</li>
+                                ))}
+                            </ul>
+
+                            <div style={{ marginTop: '0.5rem' }}><b>Top Artists</b></div>
+                            <ul>
+                                {Object.entries(data.topArtists || {}).map(([artist, count]) => (
+                                    <li key={artist}>{artist} — {count} stream{count !== 1 ? 's' : ''}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {Object.keys(data.topPodcasts || {}).length === 0 ? (
+                        <div></div>
+                    ) : (
+                        <div>
+                            <ul>
+                                <div style={{ marginTop: '0.5rem' }}><b>Top Podcasts</b></div>
+                                {Object.entries(data.topPodcasts || {}).map(([podcast, count]) => (
+                                    <li key={podcast}>{podcast} — {count} episode{count !== 1 ? 's' : ''}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </Box>
             )}
         </Box>
@@ -220,15 +249,6 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
             {children}
         </div>
     )
-
-    const StyledRow = styled(Box)(({theme}) => ({
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: theme.spacing(1),
-        paddingBottom: theme.spacing(1),
-        borderBottom: '1px solid #e0e0e0',
-    }));
 
     const RowItem = ({ children, position }) => {
         let style = { display: "flex", flex: "1" };
