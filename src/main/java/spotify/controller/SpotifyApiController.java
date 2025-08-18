@@ -1,6 +1,11 @@
 package spotify.controller;
+
 import spotify.DataService;
 import spotify.StatsAggregator;
+import spotify.model.TopStatsCollector;
+import spotify.model.GeneralStatsCollector;
+import spotify.model.DailyStats;
+import spotify.model.YearlyStats;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,25 +47,25 @@ public class SpotifyApiController {
     }
 
     @GetMapping("/top-stats")
-    public ResponseEntity<StatsAggregator.TopStatsCollector> getTopStats() {
+    public ResponseEntity<TopStatsCollector> getTopStats() {
         ensureStatsAreLoaded();
         return ResponseEntity.ok(statsAggregator.getStats().getTopStats());
     }
 
     @GetMapping("/general-stats")
-    public ResponseEntity<StatsAggregator.GeneralStatsCollector> getGeneralStats() {
+    public ResponseEntity<GeneralStatsCollector> getGeneralStats() {
         ensureStatsAreLoaded();
         return ResponseEntity.ok(statsAggregator.getStats().getGeneralStats());
     }
 
     @GetMapping("/top-days")
-    public ResponseEntity<Map<String, StatsAggregator.DailyStats>> getTopDays() {
+    public ResponseEntity<Map<String, DailyStats>> getTopDays() {
         ensureStatsAreLoaded();
         return ResponseEntity.ok(statsAggregator.getStats().getDailyStats().getDailyStatsMap());
     }
 
     @GetMapping("/top-years")
-    public ResponseEntity<Map<String, StatsAggregator.YearlyStats>> getTopYears() {
+    public ResponseEntity<Map<String, YearlyStats>> getTopYears() {
         ensureStatsAreLoaded();
         return ResponseEntity.ok(statsAggregator.getStats().getYearlyStats().getYearlyStatsMap());
     }

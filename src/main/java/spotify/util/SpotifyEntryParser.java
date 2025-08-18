@@ -3,7 +3,7 @@ package spotify.util;
 import spotify.model.SpotifyPlaybackEntry;
 import org.json.JSONObject;
 
-public class SpotifyParser {
+public class SpotifyEntryParser {
 
     public static SpotifyPlaybackEntry fromJson(JSONObject json) {
         SpotifyPlaybackEntry entry = new SpotifyPlaybackEntry();

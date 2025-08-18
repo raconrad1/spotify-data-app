@@ -2,7 +2,7 @@ package spotify;
 
 import org.springframework.stereotype.Component;
 import spotify.model.SpotifyPlaybackEntry;
-import spotify.util.SpotifyParser;
+import spotify.util.SpotifyEntryParser;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -73,7 +73,7 @@ public class DataService {
 
             while (parser.nextToken() != JsonToken.END_ARRAY) {
                 ObjectNode node = mapper.readTree(parser);
-                SpotifyPlaybackEntry entry = SpotifyParser.fromJson(new org.json.JSONObject(node.toString()));
+                SpotifyPlaybackEntry entry = SpotifyEntryParser.fromJson(new org.json.JSONObject(node.toString()));
                 for (Consumer<SpotifyPlaybackEntry> consumer : entryConsumers) {
                     consumer.accept(entry);
                 }
