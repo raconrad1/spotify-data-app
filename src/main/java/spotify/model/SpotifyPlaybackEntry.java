@@ -1,4 +1,4 @@
-package com.example.spotify.model;
+package spotify.model;
 
 public class SpotifyPlaybackEntry {
     private String timestamp;

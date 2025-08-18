@@ -1,6 +1,6 @@
-package com.example.spotify.util;
+package spotify.util;
 
-import com.example.spotify.model.SpotifyPlaybackEntry;
+import spotify.model.SpotifyPlaybackEntry;
 import org.json.JSONObject;
 
 public class SpotifyParser {

@@ -1,5 +1,6 @@
-package com.example.spotify.controller;
-import com.example.spotify.DataService;
+package spotify.controller;
+import spotify.DataService;
+import spotify.StatsAggregator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,10 +22,12 @@ import java.util.Map;
 public class SpotifyApiController {
 
     private final DataService dataService;
+    private final StatsAggregator statsAggregator;
 
     @Autowired
-    public SpotifyApiController(DataService dataService) {
+    public SpotifyApiController(DataService dataService, StatsAggregator statsAggregator) {
         this.dataService = dataService;
+        this.statsAggregator = statsAggregator;
     }
 
     private void ensureStatsAreLoaded() {
@@ -33,33 +36,33 @@ public class SpotifyApiController {
     }
 
     @GetMapping("/all-stats")
-    public ResponseEntity<DataService.CombinedStatsCollector> getStats() {
+    public ResponseEntity<StatsAggregator.CombinedStatsCollector> getStats() {
         ensureStatsAreLoaded();
-        return ResponseEntity.ok(dataService.getStats());
+        return ResponseEntity.ok(statsAggregator.getStats());
     }
 
     @GetMapping("/top-stats")
-    public ResponseEntity<DataService.TopStatsCollector> getTopStats() {
+    public ResponseEntity<StatsAggregator.TopStatsCollector> getTopStats() {
         ensureStatsAreLoaded();
-        return ResponseEntity.ok(dataService.getStats().getTopStats());
+        return ResponseEntity.ok(statsAggregator.getStats().getTopStats());
     }
 
     @GetMapping("/general-stats")
-    public ResponseEntity<DataService.GeneralStatsCollector> getGeneralStats() {
+    public ResponseEntity<StatsAggregator.GeneralStatsCollector> getGeneralStats() {
         ensureStatsAreLoaded();
-        return ResponseEntity.ok(dataService.getStats().getGeneralStats());
+        return ResponseEntity.ok(statsAggregator.getStats().getGeneralStats());
     }
 
     @GetMapping("/top-days")
-    public ResponseEntity<Map<String, DataService.DailyStats>> getTopDays() {
+    public ResponseEntity<Map<String, StatsAggregator.DailyStats>> getTopDays() {
         ensureStatsAreLoaded();
-        return ResponseEntity.ok(dataService.getStats().getDailyStats().getDailyStatsMap());
+        return ResponseEntity.ok(statsAggregator.getStats().getDailyStats().getDailyStatsMap());
     }
 
     @GetMapping("/top-years")
-    public ResponseEntity<Map<String, DataService.YearlyStats>> getTopYears() {
+    public ResponseEntity<Map<String, StatsAggregator.YearlyStats>> getTopYears() {
         ensureStatsAreLoaded();
-        return ResponseEntity.ok(dataService.getStats().getYearlyStats().getYearlyStatsMap());
+        return ResponseEntity.ok(statsAggregator.getStats().getYearlyStats().getYearlyStatsMap());
     }
 
 

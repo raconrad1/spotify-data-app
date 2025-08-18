@@ -62,7 +62,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>com.example.spotify.Main</mainClass>
+                    <mainClass>spotify.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>
