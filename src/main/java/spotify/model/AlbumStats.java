@@ -29,7 +29,7 @@ public class AlbumStats {
         }
         artist.add(entry.getArtistName());
         hours += ms / 1000.0 / 60.0 / 60.0;
-//            playbackHistory.add(entry);
+            playbackHistory.add(entry);
     }
 
     public void incrementSkip() {

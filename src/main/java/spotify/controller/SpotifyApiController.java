@@ -2,10 +2,7 @@ package spotify.controller;
 
 import spotify.DataService;
 import spotify.StatsAggregator;
-import spotify.model.TopStatsCollector;
-import spotify.model.GeneralStatsCollector;
-import spotify.model.DailyStats;
-import spotify.model.YearlyStats;
+import spotify.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,6 +65,12 @@ public class SpotifyApiController {
     public ResponseEntity<Map<String, YearlyStats>> getTopYears() {
         ensureStatsAreLoaded();
         return ResponseEntity.ok(statsAggregator.getStats().getYearlyStats().getYearlyStatsMap());
+    }
+
+    @GetMapping("/track-stats")
+    public ResponseEntity<Map<String, TrackStats>> getTrackStats() {
+        ensureStatsAreLoaded();
+        return ResponseEntity.ok(statsAggregator.getStats().getTopStats().getTrackStats());
     }
 
 

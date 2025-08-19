@@ -24,7 +24,7 @@ public class TopStatsCollector {
 
             // TrackStats
             String trackKey = track + " - " + artist;
-            trackStatsMap.putIfAbsent(trackKey, new TrackStats(track, artist, playedAt, entry));
+            trackStatsMap.putIfAbsent(trackKey, new TrackStats(track, artist, album, playedAt, entry));
             TrackStats trackStats = trackStatsMap.get(trackKey);
             if (ms >= 30000) {
                 trackStats.addStream(playedAt, entry);
