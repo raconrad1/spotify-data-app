@@ -199,7 +199,7 @@ function DayStatRow({ index, day, data }) {
             {expanded && (
                 <Box style={{ marginLeft: '24px', marginTop: '8px' }}>
                     {Object.keys(data.topTracks || {}).length === 0 ? (
-                        <div></div>
+                        <div style={{ marginTop: '0.5rem' }}><b>No tracks played</b></div>
                     ) : (
                         <div>
                             <div style={{ marginTop: '0.5rem' }}><b>Top Songs</b></div>
@@ -219,7 +219,7 @@ function DayStatRow({ index, day, data }) {
                     )}
 
                     {Object.keys(data.topPodcasts || {}).length === 0 ? (
-                        <div></div>
+                        <div style={{ marginTop: '0.5rem' }}><b>No Podcasts played</b></div>
                     ) : (
                         <div>
                             <ul>
@@ -234,6 +234,46 @@ function DayStatRow({ index, day, data }) {
             )}
         </Box>
     );
+}
+
+function YearStatRow({ year, data}) {
+    const [expanded, setExpanded] = useState(false);
+
+    return (
+        <Box key={year} style={{ padding: "20px 0 20px 0"}}>
+            <StyledRow>
+                <div><b>{year}</b></div>
+                <div style={{
+                    display: "flex",
+                    margin: "auto",
+                    justifyContent: "space-evenly",
+                    width: "60%",
+                    borderRight: "1px solid rgba(66, 135, 245, 0.5)"
+                }}>
+                    <span>{addNumberCommas(data.streams)} streams</span>
+                    <span>{(data.musicHours ?? 0).toFixed(1)} hours listened</span>
+                    <span>{addNumberCommas(data.uniqueStreams)} unique streams</span>
+                </div>
+                <div style={{
+                    display: "flex",
+                    margin: "auto",
+                    justifyContent: "space-evenly",
+                    width: "60%",
+                }}>
+                    <span>{addNumberCommas(data.podcastPlays)} podcast plays</span>
+                    <span>{(data.podcastHours ?? 0).toFixed(1)} hours listened</span>
+                </div>
+                <div>
+                    <button onClick={() => setExpanded(!expanded)}>
+                        {expanded ? 'Hide Details' : 'Show Details'}
+                    </button>
+                </div>
+            </StyledRow>
+        {expanded && (
+            <p>hey this is a test</p>
+        )}
+        </Box>
+    )
 }
 
 function DataTabs({ topStatsData, topYearsData, topDaysData }) {
@@ -395,30 +435,8 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
         <Box>
             {Object.entries(topYearsData)
                 .sort((a, b) => b[1].year - a[1].year)
-                .map(([year, { streams, musicHours, uniqueStreams, podcastPlays, podcastHours }]) => (
-                    <StyledRow style={{ paddingTop: "20px", paddingBottom: "20px" }}>
-                        <span><b>{year}</b></span>
-                        <div style={{
-                            display: "flex",
-                            margin: "auto",
-                            justifyContent: "space-evenly",
-                            width: "80%",
-                            borderRight: "1px solid rgba(66, 135, 245, 0.5)"
-                        }}>
-                            <span>{addNumberCommas(streams)} streams</span>
-                            <span>{(musicHours ?? 0).toFixed(1)} hours listened</span>
-                            <span>{addNumberCommas(uniqueStreams)} unique streams</span>
-                        </div>
-                        <div style={{
-                            display: "flex",
-                            margin: "auto",
-                            justifyContent: "space-evenly",
-                            width: "60%",
-                        }}>
-                            <span>{addNumberCommas(podcastPlays)} podcast plays</span>
-                            <span>{(podcastHours ?? 0).toFixed(1)} hours listened</span>
-                        </div>
-                    </StyledRow>
+                .map(([year, data]) => (
+                    <YearStatRow key={year} year={year} data={data}></YearStatRow>
                 ))}
         </Box>
     ) : (
