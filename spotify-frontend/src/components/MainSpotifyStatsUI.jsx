@@ -270,7 +270,20 @@ function YearStatRow({ year, data}) {
                 </div>
             </StyledRow>
         {expanded && (
-            <p>hey this is a test</p>
+            <div>
+                {Object.entries(data.entriesOfTheYear || {}).map(([year, entries]) => (
+                    <div key={year}>
+                        <b>All entries in {year}</b>
+                        <ul>
+                            {entries.map((entry, i) => (
+                                <li key={i}>
+                                    {entry.trackName} — {entry.artistName}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
         )}
         </Box>
     )

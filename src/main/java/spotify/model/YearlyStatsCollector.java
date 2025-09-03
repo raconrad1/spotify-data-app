@@ -25,10 +25,10 @@ public class YearlyStatsCollector {
             YearlyStats stats = yearlyStatsMap.computeIfAbsent(year, k -> new YearlyStats());
             if(track != null) {
                 boolean isUnique = songsSeen.add(track);
-                stats.addPlay(ms, isUnique);
+                stats.addPlay(ms, isUnique, year, entry);
             }
             if(podcast != null) {
-                stats.addPodcastPlay(ms);
+                stats.addPodcastPlay(ms, year, entry);
             }
         }
     }
