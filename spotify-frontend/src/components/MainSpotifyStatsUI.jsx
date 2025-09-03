@@ -12,6 +12,68 @@ function addNumberCommas(value) {
     return Number(value).toLocaleString('en-us');
 }
 
+function formatDate(isoString) {
+    const date = new Date(isoString);
+
+    return new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Chicago",
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+    }).format(date);
+}
+
+function groupByDay(entries) {
+    return entries.reduce((acc, entry) => {
+        const dateObj = new Date(entry.timestamp);
+
+        const options = {
+            timeZone: "America/Chicago",
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        };
+        const formattedParts = new Intl.DateTimeFormat("en-US", options).formatToParts(dateObj);
+
+        const dayPart = formattedParts.find(p => p.type === "day");
+        const day = parseInt(dayPart.value, 10);
+
+        const suffix =
+            day >= 11 && day <= 13
+                ? "th"
+                : ["st", "nd", "rd"][(day % 10) - 1] || "th";
+
+        let formatted = formattedParts
+            .map(p => (p.type === "day" ? `${day}${suffix}` : p.value))
+            .join("");
+
+        if (!acc[formatted]) {
+            acc[formatted] = { entries: [], dayTotalMs: 0 };
+        }
+        acc[formatted].entries.push(entry);
+        acc[formatted].dayTotalMs += entry.msPlayed || 0;
+
+        return acc;
+    }, {});
+}
+
+function msToTimeListened(ms) {
+    const hours = Math.floor(ms / 3600000);
+    const minutes = Math.floor((ms % 3600000) / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+
+    let result = "";
+    if (hours > 0) result += `${hours}h `;
+    if (minutes > 0 || hours > 0) result += `${minutes}m `;
+    result += `${seconds}s`;
+
+    return result.trim();
+}
+
 const BackToTopButton = () => {
     const [showButton, setShowButton] = useState(false);
 
@@ -236,6 +298,59 @@ function DayStatRow({ index, day, data }) {
     );
 }
 
+function DayEntries({ day, entries, dayTotalMs }) {
+    const [expanded, setExpanded] = useState(false);
+
+    const visibleEntries = expanded ? entries : entries.slice(0, 10);
+    const hiddenCount = entries.length - visibleEntries.length;
+
+    return (
+        <div key={day} style={{ borderBottom: "1px solid gray", }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <h4 style={{ fontSize: "1.9rem" }}>{day}</h4>
+                <h1 style={{ fontSize: "1.5rem"}}>{msToTimeListened(dayTotalMs)}</h1>
+            </div>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+                {visibleEntries.map((entry, i) => (
+                    <li
+                        key={i}
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            padding: "8px 0",
+                            borderBottom: "1px solid #ccc",
+                        }}
+                    >
+                        <div style={{ flex: 3, display: "flex", flexDirection: "column", gap: "4px" }}>
+                            <span style={{ fontWeight: "bold" }}>{entry.trackName || entry.podcastEpisodeName}</span>
+                            <span style={{ color: "#555" }}>{entry.artistName || entry.podcastName}</span>
+                        </div>
+
+                        <div style={{ flex: 1, textAlign: "right" }}>
+                            <span>{msToTimeListened(entry.msPlayed)}</span>
+                        </div>
+
+                        <div style={{ flex: 2, display: "flex", justifyContent: "flex-end", gap: "10px", alignItems: "center" }}>
+                            <span>{formatDate(entry.timestamp)}</span>
+                            <button>entry info</button>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+
+            {entries.length > 10 && (
+                <button
+                    onClick={() => setExpanded(!expanded)}
+                    style={{ margin: "8px auto 8px auto" }}
+                >
+                    {expanded ? "▲ Show Less" : `▼ Show ${hiddenCount} more`}
+                </button>
+            )}
+        </div>
+    );
+}
+
 function YearStatRow({ year, data}) {
     const [expanded, setExpanded] = useState(false);
 
@@ -273,21 +388,20 @@ function YearStatRow({ year, data}) {
             <div>
                 {Object.entries(data.entriesOfTheYear || {}).map(([year, entries]) => (
                     <div key={year}>
-                        <b>All entries in {year}</b>
-                        <ul>
-                            {entries.map((entry, i) => (
-                                <li key={i}>
-                                    {entry.trackName} — {entry.artistName}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
-            </div>
-        )}
-        </Box>
-    )
-}
+                        {Object.entries(groupByDay(entries)).map(([day, {entries: dayEntries, dayTotalMs}]) => (
+                            <DayEntries
+                            key={day}
+                            day={day}
+                            entries={dayEntries}
+                            dayTotalMs={dayTotalMs}
+                            />
+                    ))}
+                </div>
+            ))}
+        </div>
+    )}
+    </Box>
+)}
 
 function DataTabs({ topStatsData, topYearsData, topDaysData }) {
     const [value, setValue] = useState('1');
@@ -613,7 +727,7 @@ export default function App() {
     return (
         <>
             <h1>Your Extended Spotify Streaming History</h1>
-            <p>Spotify considers a <b>stream</b> as a track that was played for at least 30 seconds.</p>
+            <p>Info: Spotify considers a <b>stream</b> as a track that was played for at least 30 seconds.</p>
             <GeneralStats
                 generalStatsData={generalStatsData}
             />
