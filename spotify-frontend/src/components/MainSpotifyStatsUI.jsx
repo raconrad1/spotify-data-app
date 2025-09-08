@@ -6,10 +6,86 @@ import { TabContext, TabPanel } from '@mui/lab'
 import { styled } from '@mui/material/styles';
 import { LineWobble } from 'ldrs/react'
 import 'ldrs/react/LineWobble.css';
+import { motion, AnimatePresence } from "framer-motion";
 
 
 function addNumberCommas(value) {
     return Number(value).toLocaleString('en-us');
+}
+
+function Tooltip({ children, content }) {
+    const [visible, setVisible] = useState(false);
+
+    const tooltipVariants = {
+        hidden: { opacity: 0, x: -5, y: -5 },
+        visible: { opacity: 1, x: 0, y: 0, transition: { duration: 0.2 } },
+    };
+
+    return (
+        <div
+            style={{ position: "relative", display: "inline-block" }}
+            onMouseEnter={() => setVisible(true)}
+            onMouseLeave={() => setVisible(false)}
+        >
+            {/* Children with hover effect */}
+            <div
+                style={{
+                    display: "inline-block",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    borderRadius: "4px",
+                    padding: "2px 4px",
+                    boxShadow: visible ? "0 0 0 1px rgba(0,0,0,0.3)" : "none",
+                    backgroundColor: visible ? "rgba(0,0,0,0.05)" : "transparent",
+                }}
+            >
+                {children}
+            </div>
+
+            {/* Tooltip */}
+            <AnimatePresence>
+                {visible && (
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        variants={tooltipVariants}
+                        style={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "100%",
+                            marginLeft: "8px",
+                            transform: "translateY(-50%)",
+                            backgroundColor: "rgba(0,0,0,0.8)",
+                            color: "#fff",
+                            padding: "6px 10px",
+                            borderRadius: "4px",
+                            whiteSpace: "nowrap",
+                            fontSize: "0.8rem",
+                            zIndex: 10,
+                        }}
+                    >
+                        {content}
+
+                        {/* Arrow pointing to children */}
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "-5px",
+                                marginTop: "-5px",
+                                width: 0,
+                                height: 0,
+                                borderTop: "5px solid transparent",
+                                borderBottom: "5px solid transparent",
+                                borderRight: "5px solid rgba(0,0,0,0.8)",
+                            }}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
 }
 
 function formatDate(isoString) {
@@ -27,7 +103,7 @@ function formatDate(isoString) {
 }
 
 function groupByDay(entries) {
-    return entries.reduce((acc, entry) => {
+    const grouped = entries.reduce((acc, entry) => {
         const dateObj = new Date(entry.timestamp);
 
         const options = {
@@ -52,13 +128,90 @@ function groupByDay(entries) {
             .join("");
 
         if (!acc[formatted]) {
-            acc[formatted] = { entries: [], dayTotalMs: 0 };
+            acc[formatted] = { entries: [], dayTotalMs: 0, dateObj };
         }
         acc[formatted].entries.push(entry);
         acc[formatted].dayTotalMs += entry.msPlayed || 0;
 
         return acc;
     }, {});
+
+    return Object.entries(grouped)
+        .map(([dayLabel, data]) => ({
+            dayLabel,
+            ...data,
+        }))
+        .sort((a, b) => a.dateObj - b.dateObj);
+}
+
+function DayEntryItem({ entry }) {
+    const [showInfo, setShowInfo] = useState(false);
+
+    return (
+        <li
+            style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "8px 0",
+                borderBottom: "1px solid #ccc",
+                flexDirection: "column"
+            }}
+        >
+            <div style={{ display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ flex: 3, display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <span style={{ fontWeight: "bold" }}>
+                      <Tooltip content="test">
+                        {entry.trackName || entry.podcastEpisodeName}
+                      </Tooltip>
+                    </span>
+                    <span style={{ color: "#555" }}>{entry.artistName || entry.podcastName}</span>
+                </div>
+
+                <div style={{ flex: 1, textAlign: "right" }}>
+                    <span>{msToTimeListened(entry.msPlayed)}</span>
+                </div>
+
+                <div style={{ flex: 2, display: "flex", justifyContent: "flex-end", gap: "10px", alignItems: "center" }}>
+                    <span>{formatDate(entry.timestamp)}</span>
+                    <button onClick={() => setShowInfo(!showInfo)}>
+                        {showInfo ? "Hide Info" : "Entry Info"}
+                    </button>
+                </div>
+            </div>
+
+            {showInfo && (
+                <motion.div
+                    style={{ marginTop: "8px", fontSize: "0.9rem", color: "#333", textAlign: "left" }}
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    {[
+                        <p key="1" style={{ textAlign: "center"}}><a href={`${entry.spotifyTrackUri}`}>Play Track</a></p>,
+                        <p key="2">Platform: {entry.platform}</p>,
+                        <p key="3">Country: {entry.country}</p>,
+                        <p key="4">Reason Start: {entry.reasonStart}</p>,
+                        <p key="5">Reason End: {entry.reasonEnd}</p>,
+                        <p key="6">Shuffle Toggled: {entry.shuffle ? "Yes" : "No"}</p>,
+                        <p key="7">Track Skipped: {entry.skipped ? "Yes" : "No"}</p>,
+                        <p key="8">Offline Mode Toggled: {entry.offline ? "Yes" : "No"}</p>,
+                        <p key="9">Incognito Mode Toggled: {entry.incognitoMode ? "Yes" : "No"}</p>,
+                    ].map((item, index) => (
+                        <motion.div
+                            key={index}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                        >
+                            {item}
+                        </motion.div>
+                    ))}
+                </motion.div>
+            )}
+        </li>
+    );
 }
 
 function msToTimeListened(ms) {
@@ -220,23 +373,51 @@ function GeneralStats({ generalStatsData }) {
     )
 
     return (
-        <div style={{ display: "flex", flexWrap: "wrap", alignContent: "space-around" }}>
-            <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%" }}>
-                {totalEntriesContent}
-                {totalStreamsContent}
-                {totalUniqueEntriesContent}
-                {totalSkipsContent}
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%" }}>
-                {totalMusicTimeContent}
-                {totalPodcastTimeContent}
-            </div>
-            {shufflePercentContent}
-            {firstTrackEverContent}
-            {totalRoyaltiesContent}
-        </div>
-    )
+        <motion.div
+            style={{ display: "flex", flexWrap: "wrap", alignContent: "space-around" }}
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+        >
+            <motion.div
+                style={{ display: "flex", justifyContent: "space-evenly", width: "100%" }}
+                variants={containerVariants}
+            >
+                <motion.div style={{ width: "100%" }} variants={bubbleVariants}>{totalEntriesContent}</motion.div>
+                <motion.div style={{ width: "100%" }} variants={bubbleVariants}>{totalStreamsContent}</motion.div>
+                <motion.div style={{ width: "100%" }} variants={bubbleVariants}>{totalUniqueEntriesContent}</motion.div>
+                <motion.div style={{ width: "100%" }} variants={bubbleVariants}>{totalSkipsContent}</motion.div>
+            </motion.div>
+
+            <motion.div
+                style={{ display: "flex", justifyContent: "space-evenly", width: "100%" }}
+                variants={containerVariants}
+            >
+                <motion.div style={{ width: "100%" }} variants={bubbleVariants}>{totalMusicTimeContent}</motion.div>
+                <motion.div style={{ width: "100%" }} variants={bubbleVariants}>{totalPodcastTimeContent}</motion.div>
+            </motion.div>
+
+            <motion.div style={{ width: "100%" }} variants={bubbleVariants}>{shufflePercentContent}</motion.div>
+            <motion.div style={{ width: "100%" }} variants={bubbleVariants}>{firstTrackEverContent}</motion.div>
+            <motion.div style={{ width: "100%" }} variants={bubbleVariants}>{totalRoyaltiesContent}</motion.div>
+        </motion.div>
+    );
 }
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.15,
+        },
+    },
+};
+
+const bubbleVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+};
 
 function DayStatRow({ index, day, data }) {
     const [expanded, setExpanded] = useState(false);
@@ -312,30 +493,7 @@ function DayEntries({ day, entries, dayTotalMs }) {
             </div>
             <ul style={{ listStyle: "none", padding: 0 }}>
                 {visibleEntries.map((entry, i) => (
-                    <li
-                        key={i}
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            padding: "8px 0",
-                            borderBottom: "1px solid #ccc",
-                        }}
-                    >
-                        <div style={{ flex: 3, display: "flex", flexDirection: "column", gap: "4px" }}>
-                            <span style={{ fontWeight: "bold" }}>{entry.trackName || entry.podcastEpisodeName}</span>
-                            <span style={{ color: "#555" }}>{entry.artistName || entry.podcastName}</span>
-                        </div>
-
-                        <div style={{ flex: 1, textAlign: "right" }}>
-                            <span>{msToTimeListened(entry.msPlayed)}</span>
-                        </div>
-
-                        <div style={{ flex: 2, display: "flex", justifyContent: "flex-end", gap: "10px", alignItems: "center" }}>
-                            <span>{formatDate(entry.timestamp)}</span>
-                            <button>entry info</button>
-                        </div>
-                    </li>
+                    <DayEntryItem key={i} entry={entry} />
                 ))}
             </ul>
 
@@ -388,15 +546,16 @@ function YearStatRow({ year, data}) {
             <div>
                 {Object.entries(data.entriesOfTheYear || {}).map(([year, entries]) => (
                     <div key={year}>
-                        {Object.entries(groupByDay(entries)).map(([day, {entries: dayEntries, dayTotalMs}]) => (
+                        {groupByDay(entries).map(({ dayLabel, entries, dayTotalMs }) => (
                             <DayEntries
-                            key={day}
-                            day={day}
-                            entries={dayEntries}
-                            dayTotalMs={dayTotalMs}
+                                key={dayLabel}
+                                day={dayLabel}
+                                entries={entries}
+                                dayTotalMs={dayTotalMs}
                             />
-                    ))}
-                </div>
+                        ))}
+
+                    </div>
             ))}
         </div>
     )}
