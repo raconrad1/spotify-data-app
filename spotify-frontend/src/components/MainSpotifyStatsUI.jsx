@@ -13,13 +13,46 @@ function addNumberCommas(value) {
     return Number(value).toLocaleString('en-us');
 }
 
-function Tooltip({ children, content }) {
+function TrackTooltip({ entry, topStatsData, children }) {
     const [visible, setVisible] = useState(false);
 
     const tooltipVariants = {
         hidden: { opacity: 0, x: -5, y: -5 },
         visible: { opacity: 1, x: 0, y: 0, transition: { duration: 0.2 } },
     };
+
+    const trackStats = topStatsData?.trackStats || {};
+    const trackData = trackStats[entry.spotifyTrackUri];
+
+    const streamCountContent = trackData ? `Stream Count: ${trackData.streamCount}` : "No stats available";
+    const skipCountContent = trackData ? `Skip Count: ${trackData.skipCount}` : "No stats available";
+    const firstTimePlayedContent = trackData ? `First Time Played: ${formatDate(trackData.firstPlayedDate)}` : "No stats available";
+    let totalTimeListenedContent;
+
+    // Total time listened content logic
+    if (trackData) {
+        const { days = 0, hours = 0, minutes = 0 } = trackData.totalTimeListened || {};
+
+        const extraHours = Math.floor(minutes / 60);
+        const displayMinutes = minutes % 60;
+
+        const totalHours = hours + extraHours;
+        const extraDays = Math.floor(totalHours / 24);
+        const displayHours = totalHours % 24;
+
+        const displayDays = days + extraDays;
+
+        const parts = [];
+        if (displayDays) parts.push(`${displayDays} day${displayDays !== 1 ? "s" : ""}`);
+        if (displayHours) parts.push(`${displayHours} hour${displayHours !== 1 ? "s" : ""}`);
+        if (displayMinutes) parts.push(`${displayMinutes} minute${displayMinutes !== 1 ? "s" : ""}`);
+
+        totalTimeListenedContent = parts.length
+            ? `Total Time Listened: ${parts.join(" ")}`
+            : "Total Time Listened: <1 minute";
+    } else {
+        totalTimeListenedContent = "No stats available";
+    }
 
     return (
         <div
@@ -65,7 +98,12 @@ function Tooltip({ children, content }) {
                             zIndex: 10,
                         }}
                     >
-                        {content}
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span>{streamCountContent}</span>
+                            <span>{skipCountContent}</span>
+                            <span>{firstTimePlayedContent}</span>
+                            <span>{totalTimeListenedContent}</span>
+                        </div>
 
                         {/* Arrow pointing to children */}
                         <div
@@ -144,7 +182,7 @@ function groupByDay(entries) {
         .sort((a, b) => a.dateObj - b.dateObj);
 }
 
-function DayEntryItem({ entry }) {
+function DayEntryItem({ entry, topStatsData }) {
     const [showInfo, setShowInfo] = useState(false);
 
     return (
@@ -161,9 +199,9 @@ function DayEntryItem({ entry }) {
             <div style={{ display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ flex: 3, display: "flex", flexDirection: "column", gap: "4px" }}>
                     <span style={{ fontWeight: "bold" }}>
-                      <Tooltip content="test">
+                      <TrackTooltip entry={entry} topStatsData={topStatsData}>
                         {entry.trackName || entry.podcastEpisodeName}
-                      </Tooltip>
+                      </TrackTooltip>
                     </span>
                     <span style={{ color: "#555" }}>{entry.artistName || entry.podcastName}</span>
                 </div>
@@ -479,7 +517,7 @@ function DayStatRow({ index, day, data }) {
     );
 }
 
-function DayEntries({ day, entries, dayTotalMs }) {
+function DayEntries({ day, entries, dayTotalMs, topStatsData }) {
     const [expanded, setExpanded] = useState(false);
 
     const visibleEntries = expanded ? entries : entries.slice(0, 10);
@@ -493,7 +531,7 @@ function DayEntries({ day, entries, dayTotalMs }) {
             </div>
             <ul style={{ listStyle: "none", padding: 0 }}>
                 {visibleEntries.map((entry, i) => (
-                    <DayEntryItem key={i} entry={entry} />
+                    <DayEntryItem key={i} entry={entry} topStatsData={topStatsData} />
                 ))}
             </ul>
 
@@ -509,7 +547,7 @@ function DayEntries({ day, entries, dayTotalMs }) {
     );
 }
 
-function YearStatRow({ year, data}) {
+function YearStatRow({ year, data, topStatsData}) {
     const [expanded, setExpanded] = useState(false);
 
     return (
@@ -552,6 +590,7 @@ function YearStatRow({ year, data}) {
                                 day={dayLabel}
                                 entries={entries}
                                 dayTotalMs={dayTotalMs}
+                                topStatsData={topStatsData}
                             />
                         ))}
 
@@ -596,8 +635,8 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
         <Box>
             {Object.entries(topStatsData.trackStats)
                 .sort((a, b) => b[1].streamCount - a[1].streamCount)
-                .map(([trackName, stats], index) => (
-                    <StyledRow key={trackName}>
+                .map(([trackUri, stats], index) => (
+                    <StyledRow key={trackUri}>
                         <RowItem position="first"><b>{index + 1}.</b></RowItem>
                         <RowItem position="middle">
                             <span>{stats.trackName}</span>
@@ -616,8 +655,8 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
             {Object.entries(topStatsData.trackStats)
                 .filter(([_, data]) => data.skipCount === 0)
                 .sort((a, b) => b[1].streamCount - a[1].streamCount)
-                .map(([trackName, stats], index) => (
-                    <StyledRow key={trackName}>
+                .map(([trackUri, stats], index) => (
+                    <StyledRow key={trackUri}>
                         <RowItem position="first"><b>{index + 1}.</b></RowItem>
                         <RowItem position="middle">
                             <span>{stats.trackName}</span>
@@ -686,7 +725,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
         <Box>
             {Object.entries(topStatsData.trackStats)
                 .sort((a, b) => b[1].skipCount - a[1].skipCount)
-                .map(([trackName, stats], index) => (
+                .map(([trackUri, stats], index) => (
                     <StyledRow>
                         <RowItem position="first"><b>{index + 1}.</b></RowItem>
                         <RowItem position="middle">
@@ -722,7 +761,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
             {Object.entries(topYearsData)
                 .sort((a, b) => b[1].year - a[1].year)
                 .map(([year, data]) => (
-                    <YearStatRow key={year} year={year} data={data}></YearStatRow>
+                    <YearStatRow key={year} year={year} data={data} topStatsData={topStatsData}></YearStatRow>
                 ))}
         </Box>
     ) : (

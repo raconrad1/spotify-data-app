@@ -17,15 +17,15 @@ public class TopStatsCollector {
         String playedAt = entry.getTimestamp();
         int ms = entry.getMsPlayed();
         String podcast = entry.getPodcastName();
+        String trackUri = entry.getSpotifyTrackUri();
         Set<String> trueSkipCategories = new HashSet<>(Arrays.asList("backbtn", "unknown", "endplay", "fwdbtn"));
 
 
         if (track != null || artist != null) {
 
             // TrackStats
-            String trackKey = track + " - " + artist;
-            trackStatsMap.putIfAbsent(trackKey, new TrackStats(track, artist, album, playedAt, entry));
-            TrackStats trackStats = trackStatsMap.get(trackKey);
+            trackStatsMap.putIfAbsent(trackUri, new TrackStats(track, artist, album, playedAt, entry));
+            TrackStats trackStats = trackStatsMap.get(trackUri);
             if (ms >= 30000) {
                 trackStats.addStream(playedAt, entry);
             }
