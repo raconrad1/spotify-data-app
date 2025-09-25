@@ -13,7 +13,7 @@ function addNumberCommas(value) {
     return Number(value).toLocaleString('en-us');
 }
 
-function TrackTooltip({ entry, topStatsData, children }) {
+function TrackTooltip({ spotifyTrackUri, topStatsData, children }) {
     const [visible, setVisible] = useState(false);
 
     const tooltipVariants = {
@@ -22,8 +22,10 @@ function TrackTooltip({ entry, topStatsData, children }) {
     };
 
     const trackStats = topStatsData?.trackStats || {};
-    const trackData = trackStats[entry.spotifyTrackUri];
+    const trackData = trackStats[spotifyTrackUri];
 
+    const trackAndArtistContent = trackData ? `${trackData.trackName} by ${trackData.artist}` : "No stats available";
+    const albumContent = trackData ? `Album: ${trackData.album}` : "No stats available";
     const streamCountContent = trackData ? `Stream Count: ${trackData.streamCount}` : "No stats available";
     const skipCountContent = trackData ? `Skip Count: ${trackData.skipCount}` : "No stats available";
     const firstTimePlayedContent = trackData ? `First Time Played: ${formatDate(trackData.firstPlayedDate)}` : "No stats available";
@@ -56,7 +58,7 @@ function TrackTooltip({ entry, topStatsData, children }) {
 
     return (
         <div
-            style={{ position: "relative", display: "inline-block" }}
+            style={{ position: "relative", display: "inline-block", fontWeight: "bold", }}
             onMouseEnter={() => setVisible(true)}
             onMouseLeave={() => setVisible(false)}
         >
@@ -67,7 +69,7 @@ function TrackTooltip({ entry, topStatsData, children }) {
                     cursor: "pointer",
                     transition: "all 0.2s",
                     borderRadius: "4px",
-                    padding: "2px 4px",
+                    padding: "0px 4px",
                     boxShadow: visible ? "0 0 0 1px rgba(0,0,0,0.3)" : "none",
                     backgroundColor: visible ? "rgba(0,0,0,0.05)" : "transparent",
                 }}
@@ -85,10 +87,11 @@ function TrackTooltip({ entry, topStatsData, children }) {
                         variants={tooltipVariants}
                         style={{
                             position: "absolute",
-                            top: "50%",
+                            // top: "50%",
+                            bottom: "50%",
                             left: "100%",
                             marginLeft: "8px",
-                            transform: "translateY(-50%)",
+                            // transform: "translateY(-50%)",
                             backgroundColor: "rgba(0,0,0,0.8)",
                             color: "#fff",
                             padding: "6px 10px",
@@ -96,9 +99,10 @@ function TrackTooltip({ entry, topStatsData, children }) {
                             whiteSpace: "nowrap",
                             fontSize: "0.8rem",
                             zIndex: 10,
-                        }}
-                    >
+                        }}>
                         <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span>{trackAndArtistContent}</span>
+                            <span>{albumContent}</span>
                             <span>{streamCountContent}</span>
                             <span>{skipCountContent}</span>
                             <span>{firstTimePlayedContent}</span>
@@ -106,19 +110,19 @@ function TrackTooltip({ entry, topStatsData, children }) {
                         </div>
 
                         {/* Arrow pointing to children */}
-                        <div
-                            style={{
-                                position: "absolute",
-                                top: "50%",
-                                left: "-5px",
-                                marginTop: "-5px",
-                                width: 0,
-                                height: 0,
-                                borderTop: "5px solid transparent",
-                                borderBottom: "5px solid transparent",
-                                borderRight: "5px solid rgba(0,0,0,0.8)",
-                            }}
-                        />
+                        {/*<div*/}
+                        {/*    style={{*/}
+                        {/*        position: "absolute",*/}
+                        {/*        top: "50%",*/}
+                        {/*        left: "-5px",*/}
+                        {/*        marginTop: "-5px",*/}
+                        {/*        width: 0,*/}
+                        {/*        height: 0,*/}
+                        {/*        borderTop: "5px solid transparent",*/}
+                        {/*        borderBottom: "5px solid transparent",*/}
+                        {/*        borderRight: "5px solid rgba(0,0,0,0.8)",*/}
+                        {/*    }}*/}
+                        {/*/>*/}
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -199,7 +203,7 @@ function DayEntryItem({ entry, topStatsData }) {
             <div style={{ display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ flex: 3, display: "flex", flexDirection: "column", gap: "4px" }}>
                     <span style={{ fontWeight: "bold" }}>
-                      <TrackTooltip entry={entry} topStatsData={topStatsData}>
+                      <TrackTooltip spotifyTrackUri={entry.spotifyTrackUri} topStatsData={topStatsData}>
                         {entry.trackName || entry.podcastEpisodeName}
                       </TrackTooltip>
                     </span>
@@ -318,7 +322,7 @@ const StyledRow = styled(Box)(({theme}) => ({
     borderBottom: '1px solid #e0e0e0',
 }));
 
-function GeneralStatBox({ children }) {
+function BubbleBox({ children }) {
     return (
         <div style={{
             border: "1px solid #c4c4c4",
@@ -336,76 +340,76 @@ function GeneralStatBox({ children }) {
 function GeneralStats({ generalStatsData }) {
 
     const totalEntriesContent = generalStatsData ? (
-        <GeneralStatBox>
+        <BubbleBox>
             <h4>Total entries</h4>
             <p>{addNumberCommas(generalStatsData.totalEntries)}</p>
-        </GeneralStatBox>
+        </BubbleBox>
     ) : (
         <p>Loading total entries...</p>
     )
 
     const totalStreamsContent = generalStatsData ? (
-        <GeneralStatBox>
+        <BubbleBox>
             <h4>Total streams</h4>
             <p>{addNumberCommas(generalStatsData.totalStreams)}</p>
-        </GeneralStatBox>
+        </BubbleBox>
     ) : (
         <p>Loading total streams...</p>
     )
 
     const totalUniqueEntriesContent = generalStatsData ? (
-        <GeneralStatBox>
+        <BubbleBox>
             <h4>Total unique streams</h4>
             <p>{addNumberCommas(generalStatsData.totalUniqueStreams)}</p>
-        </GeneralStatBox>
+        </BubbleBox>
     ) : (
         <p>Loading total unique streams...</p>
     )
 
     const totalSkipsContent = generalStatsData ? (
-        <GeneralStatBox>
+        <BubbleBox>
             <h4>Total tracks skipped</h4>
             <p>{addNumberCommas(generalStatsData.totalSkippedTracks)}</p>
-        </GeneralStatBox>
+        </BubbleBox>
     ) : (
         <p>Loading total skips...</p>
     )
 
     const totalMusicTimeContent = generalStatsData?.totalMusicTime ? (
-        <GeneralStatBox>
+        <BubbleBox>
             <p>You've listened to <b>music</b> for {addNumberCommas(generalStatsData.totalMusicTime.minutes)} minutes, which is {addNumberCommas(generalStatsData.totalMusicTime.hours)} hours, or {addNumberCommas(generalStatsData.totalMusicTime.days)} days.</p>
-        </GeneralStatBox>
+        </BubbleBox>
     ) : (
         <p>Loading total time listened to music...</p>
     )
 
     const totalPodcastTimeContent = generalStatsData?.totalPodcastTime ? (
-        <GeneralStatBox>
+        <BubbleBox>
             <p>You've listened to <b>podcasts</b> for {addNumberCommas(generalStatsData.totalPodcastTime.minutes)} minutes, which is {addNumberCommas(generalStatsData.totalPodcastTime.hours)} hours, or {addNumberCommas(generalStatsData.totalPodcastTime.days)} days.</p>
-        </GeneralStatBox>
+        </BubbleBox>
     ) : (
         <p>Loading total time listened to podcasts...</p>
     )
 
     const shufflePercentContent = generalStatsData ? (
-        <GeneralStatBox>
-            <p><b>{generalStatsData.percentageTimeShuffled}%</b> of the time you are listening to music on shuffle.</p></GeneralStatBox>
+        <BubbleBox>
+            <p><b>{generalStatsData.percentageTimeShuffled}%</b> of the time you are listening to music on shuffle.</p></BubbleBox>
     ) : (
         <p>Loading shuffle percent...</p>
     )
 
     const firstTrackEverContent = generalStatsData?.firstTrackEver ? (
-        <GeneralStatBox>
+        <BubbleBox>
             <p>The first track you've ever listened to on Spotify was <b>{generalStatsData.firstTrackEver["track"]} by <em>{generalStatsData.firstTrackEver["artist"]}</em></b>. It was played on {generalStatsData.firstTrackEver["timeStamp"]}.</p>
-        </GeneralStatBox>
+        </BubbleBox>
     ) : (
         <p>Loading first track ever...</p>
     )
 
     const totalRoyaltiesContent = generalStatsData ? (
-        <GeneralStatBox>
+        <BubbleBox>
             <p>On Spotify, artists earn an average of $0.004 per stream. That means you have contributed approximately <b>${generalStatsData.totalArtistRevenue}</b> to artists through your listening. However, this estimate assumes that artists receive the full amount, which often isn't the case - most labels take a significant share of the streaming revenue.</p>
-        </GeneralStatBox>
+        </BubbleBox>
     ) : (
         <p>Loading total revenue to artists...</p>
     )
@@ -551,31 +555,46 @@ function YearStatRow({ year, data, topStatsData}) {
     const [expanded, setExpanded] = useState(false);
 
     return (
-        <Box key={year} style={{ padding: "20px 0 20px 0"}}>
+        <Box key={year} style={{ padding: "40px 0 40px 0",}}>
             <StyledRow>
-                <div><b>{year}</b></div>
                 <div style={{
                     display: "flex",
                     margin: "auto",
                     justifyContent: "space-evenly",
-                    width: "60%",
-                    borderRight: "1px solid rgba(66, 135, 245, 0.5)"
+                    width: "10%",
+                }}><h2><b>{year}</b></h2></div>
+                <div style={{
+                    display: "flex",
+                    margin: "auto",
+                    justifyContent: "space-evenly",
+                    width: "45%",
                 }}>
-                    <span>{addNumberCommas(data.streams)} streams</span>
-                    <span>{(data.musicHours ?? 0).toFixed(1)} hours listened</span>
-                    <span>{addNumberCommas(data.uniqueStreams)} unique streams</span>
+                    <BubbleBox>
+                    <p>{addNumberCommas(data.streams)} streams</p>
+                    <p>{(data.musicHours ?? 0).toFixed(1)} hours listened</p>
+                    <p>{addNumberCommas(data.uniqueStreams)} unique streams</p>
+                    </BubbleBox>
                 </div>
                 <div style={{
                     display: "flex",
                     margin: "auto",
                     justifyContent: "space-evenly",
-                    width: "60%",
+                    width: "45%",
                 }}>
-                    <span>{addNumberCommas(data.podcastPlays)} podcast plays</span>
-                    <span>{(data.podcastHours ?? 0).toFixed(1)} hours listened</span>
+                    <BubbleBox>
+                    <p>{addNumberCommas(data.podcastPlays)} podcast plays</p>
+                    <p>{(data.podcastHours ?? 0).toFixed(1)} hours listened</p>
+                </BubbleBox>
                 </div>
                 <div>
-                    <button onClick={() => setExpanded(!expanded)}>
+                    <button style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding: "4px 12px",
+                        minWidth: "120px",
+                        minHeight: "60px",
+                    }} onClick={() => setExpanded(!expanded)}>
                         {expanded ? 'Hide Details' : 'Show Details'}
                     </button>
                 </div>
@@ -639,7 +658,9 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                     <StyledRow key={trackUri}>
                         <RowItem position="first"><b>{index + 1}.</b></RowItem>
                         <RowItem position="middle">
-                            <span>{stats.trackName}</span>
+                            <TrackTooltip spotifyTrackUri={trackUri} topStatsData={topStatsData}>
+                                {stats.trackName}
+                            </TrackTooltip>
                             <span><i>{stats.artist}</i></span>
                         </RowItem>
                         <RowItem position="last">{addNumberCommas(stats.streamCount)} streams</RowItem>
@@ -659,7 +680,11 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                     <StyledRow key={trackUri}>
                         <RowItem position="first"><b>{index + 1}.</b></RowItem>
                         <RowItem position="middle">
-                            <span>{stats.trackName}</span>
+                            <span>
+                                <TrackTooltip spotifyTrackUri={trackUri} topStatsData={topStatsData}>
+                                    {stats.trackName}
+                                </TrackTooltip>
+                            </span>
                             <span><i>{stats.artist}</i></span>
                         </RowItem>
                         <RowItem position="last">{addNumberCommas(stats.streamCount)} streams</RowItem>
@@ -729,7 +754,11 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                     <StyledRow>
                         <RowItem position="first"><b>{index + 1}.</b></RowItem>
                         <RowItem position="middle">
-                            <span>{stats.trackName}</span>
+                            <span>
+                                <TrackTooltip spotifyTrackUri={trackUri} topStatsData={topStatsData}>
+                                    {stats.trackName}
+                                </TrackTooltip>
+                            </span>
                             <span><i>{stats.artist}</i></span>
                         </RowItem>
                         <RowItem position="last">{addNumberCommas(stats.skipCount)} skips</RowItem>
