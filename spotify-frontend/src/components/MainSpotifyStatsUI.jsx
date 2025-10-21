@@ -201,6 +201,8 @@ function DayEntryItem({ entry, topStatsData }) {
             }}
         >
             <div style={{ display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center" }}>
+
+                {/*Track Div*/}
                 <div style={{ flex: 3, display: "flex", flexDirection: "column", gap: "4px" }}>
                     <span style={{ fontWeight: "bold" }}>
                       <TrackTooltip spotifyTrackUri={entry.spotifyTrackUri} topStatsData={topStatsData}>
@@ -210,13 +212,13 @@ function DayEntryItem({ entry, topStatsData }) {
                     <span style={{ color: "#555" }}>{entry.artistName || entry.podcastName}</span>
                 </div>
 
-                {/*Track play time*/}
+                {/*Track play time Div*/}
                 <div style={{ flex: 1, textAlign: "right" }}>
-                    <span>{msToTimeListened(entry.msPlayed)}</span>
+                    <span>Played for {msToTimeListened(entry.msPlayed)}</span>
                 </div>
 
-                {/*Time Stamp*/}
-                <div style={{ flex: 2, display: "flex", justifyContent: "flex-end", gap: "10px", alignItems: "center" }}>
+                {/*Time Stamp and Button Div*/}
+                <div style={{ flex: 2, display: "flex", justifyContent: "flex-end", gap: "30px", alignItems: "center" }}>
                     <span>{formatDate(entry.timestamp)}</span>
 
                     {/*Show Track info button*/}
@@ -511,7 +513,7 @@ function DayStatRow({ index, day, data }) {
         <Box key={day} style={{ padding: "5px 0 5px 0"}}>
             <StyledRow style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr 1fr", // 4 columns
+                gridTemplateColumns: ".9fr .9fr .9fr .5fr",
                 alignItems: "center",
                 gap: "10px",
                 padding: "5px 0",
@@ -586,6 +588,9 @@ function DayEntries({ day, entries, dayTotalMs, topStatsData })     {
     const visibleEntries = expanded ? entries : entries.slice(0, 10);
     const hiddenCount = entries.length - visibleEntries.length;
 
+    // For the show more/less button
+    const [hovered, setHovered] = useState(false);
+
     return (
         <div key={day} style={{ borderBottom: "1px solid gray", }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -599,14 +604,23 @@ function DayEntries({ day, entries, dayTotalMs, topStatsData })     {
             </ul>
 
             {entries.length > 10 && (
+
                 <button
                     onClick={() => setExpanded(!expanded)}
+                    onMouseEnter={() => setHovered(true)}
+                    onMouseLeave={() => setHovered(false)}
                     style={{
                         margin: "8px auto 8px auto",
                         backgroundColor: expanded ? "#f0f0f0" : "#007bff",
                         color: expanded ? "#333" : "#fff",
                         borderRadius: "12px",
                         cursor: "pointer",
+                        border: hovered
+                            ? expanded
+                                ? "1px solid #007bff" // blue border when expanded + hovered
+                                : "1px solid #fff"     // white border when not expanded + hovered
+                            : "1px solid transparent", // no border normally
+                        transition: "all 0.2s ease",
                     }}
                 >
                     {expanded ? "▲ Show Less" : `▼ Show ${hiddenCount} more`}
@@ -620,7 +634,7 @@ function YearStatRow({ year, data, topStatsData}) {
     const [expanded, setExpanded] = useState(false);
 
     return (
-        <Box key={year} style={{ padding: "40px 0 40px 0",}}>
+        <Box key={year} style={{ padding: "30px 0 30px 0",}}>
             <StyledRow style={{
                     display: "grid",
                     gridTemplateColumns: "0.8fr 2fr 2fr auto",
@@ -642,7 +656,7 @@ function YearStatRow({ year, data, topStatsData}) {
                 <div>
                     <BubbleBox style={{ textAlign: "center", padding: "12px 0" }}>
                         <p style={{ margin: "4px 0" }}>{addNumberCommas(data.streams)} streams</p>
-                        <p style={{ margin: "4px 0" }}>{(data.musicHours ?? 0).toFixed(1)} hours listened</p>
+                        <p style={{ margin: "4px 0" }}>{(data.musicHours ?? 0).toFixed(1)} hours listened to music</p>
                         <p style={{ margin: "4px 0" }}>{addNumberCommas(data.uniqueStreams)} unique streams</p>
                     </BubbleBox>
                 </div>
@@ -651,7 +665,7 @@ function YearStatRow({ year, data, topStatsData}) {
                 <div>
                     <BubbleBox style={{ textAlign: "center", padding: "12px 0" }}>
                         <p style={{ margin: "4px 0" }}>{addNumberCommas(data.podcastPlays)} podcast plays</p>
-                        <p style={{ margin: "4px 0" }}>{(data.podcastHours ?? 0).toFixed(1)} hours listened</p>
+                        <p style={{ margin: "4px 0" }}>{(data.podcastHours ?? 0).toFixed(1)} hours listened to podcasts</p>
                     </BubbleBox>
                 </div>
 
@@ -915,7 +929,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                 </TabPanel>
 
                 <TabPanel value="2">
-                    <TabPanelContent description="Here are the artists you've listened to the most, and how many times you streamed a song of theirs.">
+                    <TabPanelContent description="Here are the artists you've listened to the most, sorted by how many times you've streamed a song of theirs.">
                         {topArtistContent}
                     </TabPanelContent>
                 </TabPanel>
@@ -933,7 +947,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                 </TabPanel>
 
                 <TabPanel value="5">
-                    <TabPanelContent description="Here are songs that you've skipped the most.">
+                    <TabPanelContent description="Songs that you've skipped the most.">
                         {topSkippedContent}
                     </TabPanelContent>
                 </TabPanel>
@@ -957,7 +971,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                 </TabPanel>
 
                 <TabPanel value="9">
-                    <TabPanelContent description="Days that you've streamed the most music.">
+                    <TabPanelContent description="Days that you've streamed the most music, sorted by time.">
                         {topDaysContent}
                     </TabPanelContent>
                 </TabPanel>
@@ -1024,6 +1038,8 @@ export default function App() {
             <GeneralStats
                 generalStatsData={generalStatsData}
             />
+            <br/>
+            <br/>
             <br/>
             <h2>Top Stats of All Time</h2>
             <DataTabs
