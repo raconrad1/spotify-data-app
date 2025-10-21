@@ -14,7 +14,7 @@ public class DailyStatsCollector {
         if (ms >= 30000) {
             String timestamp = entry.getTimestamp();
             ZonedDateTime zdt = ZonedDateTime.parse(timestamp);
-            String date = zdt.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"));
+            String date = zdt.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy"));
 
             DailyStats daily = dailyStatsMap.computeIfAbsent(date, k -> new DailyStats());
             daily.addPlay(entry);
