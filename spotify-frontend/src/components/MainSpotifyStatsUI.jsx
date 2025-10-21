@@ -466,20 +466,25 @@ function DayStatRow({ index, day, data }) {
 
     return (
         <Box key={day} style={{ padding: "5px 0 5px 0"}}>
-            <StyledRow>
-                <div style={{
-                    display: "flex",
-                    margin: "auto",
-                    justifyContent: "space-between",
-                    width: "100%",
-                }}>
-                    <span><b>{index + 1}.</b> {day}</span>
-                    <span>{addNumberCommas(data.streams)} streams</span>
-                    <span>{(data.hours ?? 0).toFixed(1)} hours listened</span>
-                    <button size="small" onClick={() => setExpanded(!expanded)}>
+            <StyledRow style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr 1fr 1fr", // 4 columns
+                alignItems: "center",
+                gap: "10px",
+                padding: "5px 0",
+            }}>
+                    <span style={{ justifySelf: "start" }}>
+                        <b>{index + 1}.</b> {day}
+                    </span>
+                    <span style={{ justifySelf: "center" }}>
+                        {addNumberCommas(data.streams)} streams
+                    </span>
+                    <span style={{ justifySelf: "center" }}>
+                        {(data.hours ?? 0).toFixed(1)} hours listened
+                    </span>
+                    <button  style={{ justifySelf: "end" }} size="small" onClick={() => setExpanded(!expanded)}>
                         {expanded ? 'Hide Details' : 'Show Details'}
                     </button>
-                </div>
             </StyledRow>
             {expanded && (
                 <Box style={{ marginLeft: '24px', marginTop: '8px' }}>
@@ -521,7 +526,7 @@ function DayStatRow({ index, day, data }) {
     );
 }
 
-function DayEntries({ day, entries, dayTotalMs, topStatsData }) {
+function DayEntries({ day, entries, dayTotalMs, topStatsData })     {
     const [expanded, setExpanded] = useState(false);
 
     const visibleEntries = expanded ? entries : entries.slice(0, 10);
