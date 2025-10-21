@@ -210,15 +210,22 @@ function DayEntryItem({ entry, topStatsData }) {
                     <span style={{ color: "#555" }}>{entry.artistName || entry.podcastName}</span>
                 </div>
 
+                {/*Track play time*/}
                 <div style={{ flex: 1, textAlign: "right" }}>
                     <span>{msToTimeListened(entry.msPlayed)}</span>
                 </div>
 
+                {/*Time Stamp*/}
                 <div style={{ flex: 2, display: "flex", justifyContent: "flex-end", gap: "10px", alignItems: "center" }}>
                     <span>{formatDate(entry.timestamp)}</span>
-                    <button onClick={() => setShowInfo(!showInfo)}>
-                        {showInfo ? "Hide Info" : "Entry Info"}
-                    </button>
+
+                    {/*Show Track info button*/}
+                    <ToggleButton
+                        expanded={showInfo}
+                        onClick={() => setShowInfo(!showInfo)}
+                        labelOn={"Hide Info"}
+                        labelOff={"Entry Info"}
+                    />
                 </div>
             </div>
 
@@ -312,6 +319,42 @@ const BackToTopButton = () => {
         </>
     );
 };
+
+function ToggleButton({
+         expanded,
+         onClick,
+         labelOn = "Hide Details",
+         labelOff = "Show Details",
+                          color = "#007bff",
+     }) {
+    const baseStyle = {
+        border: "none",
+        borderRadius: "12px",
+        padding: "10px 16px",
+        minWidth: "130px",
+        minHeight: "50px",
+        cursor: "pointer",
+        fontWeight: 500,
+        fontSize: "1rem",
+        transition: "background-color 0.2s ease, transform 0.1s ease",
+    };
+
+    const dynamicStyle = {
+        backgroundColor: expanded ? "#f0f0f0" : color,
+        color: expanded ? "#333" : "#fff",
+    };
+
+    return (
+        <button
+            onClick={onClick}
+            style={{ ...baseStyle, ...dynamicStyle }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1.0)")}
+        >
+            {expanded ? labelOn : labelOff}
+        </button>
+    );
+}
 
 const StyledRow = styled(Box)(({theme}) => ({
     display: 'flex',
@@ -473,18 +516,29 @@ function DayStatRow({ index, day, data }) {
                 gap: "10px",
                 padding: "5px 0",
             }}>
+                {/*Day*/}
                     <span style={{ justifySelf: "start" }}>
                         <b>{index + 1}.</b> {day}
                     </span>
+
+                {/*Number of Streams*/}
                     <span style={{ justifySelf: "center" }}>
                         {addNumberCommas(data.streams)} streams
                     </span>
+
+                {/*Hours Listened*/}
                     <span style={{ justifySelf: "center" }}>
                         {(data.hours ?? 0).toFixed(1)} hours listened
                     </span>
-                    <button  style={{ justifySelf: "end" }} size="small" onClick={() => setExpanded(!expanded)}>
-                        {expanded ? 'Hide Details' : 'Show Details'}
-                    </button>
+
+                {/*Button*/}
+                    <ToggleButton
+                    expanded={expanded}
+                    onClick={() => setExpanded(!expanded)}
+                    labelOn={"Hide Details"}
+                    labelOff={"Show Details"}
+                    />
+
             </StyledRow>
             {expanded && (
                 <Box style={{ marginLeft: '24px', marginTop: '8px' }}>
@@ -547,7 +601,13 @@ function DayEntries({ day, entries, dayTotalMs, topStatsData })     {
             {entries.length > 10 && (
                 <button
                     onClick={() => setExpanded(!expanded)}
-                    style={{ margin: "8px auto 8px auto" }}
+                    style={{
+                        margin: "8px auto 8px auto",
+                        backgroundColor: expanded ? "#f0f0f0" : "#007bff",
+                        color: expanded ? "#333" : "#fff",
+                        borderRadius: "12px",
+                        cursor: "pointer",
+                    }}
                 >
                     {expanded ? "▲ Show Less" : `▼ Show ${hiddenCount} more`}
                 </button>
@@ -561,47 +621,48 @@ function YearStatRow({ year, data, topStatsData}) {
 
     return (
         <Box key={year} style={{ padding: "40px 0 40px 0",}}>
-            <StyledRow>
-                <div style={{
-                    display: "flex",
-                    margin: "auto",
-                    justifyContent: "space-evenly",
-                    width: "10%",
-                }}><h2><b>{year}</b></h2></div>
-                <div style={{
-                    display: "flex",
-                    margin: "auto",
-                    justifyContent: "space-evenly",
-                    width: "45%",
+            <StyledRow style={{
+                    display: "grid",
+                    gridTemplateColumns: "0.8fr 2fr 2fr auto",
+                    alignItems: "center",
+                    gap: "20px",
+                    padding: "16px 24px",
+                    borderRadius: "16px",
+                    backgroundColor: "#fafafa",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
                 }}>
-                    <BubbleBox>
-                    <p>{addNumberCommas(data.streams)} streams</p>
-                    <p>{(data.musicHours ?? 0).toFixed(1)} hours listened</p>
-                    <p>{addNumberCommas(data.uniqueStreams)} unique streams</p>
+                {/* Year */}
+                <div style={{ textAlign: "center" }}>
+                    <h2 style={{ margin: 0, fontSize: "1.8rem" }}>
+                        <b>{year}</b>
+                    </h2>
+                </div>
+
+                {/* Music Stats */}
+                <div>
+                    <BubbleBox style={{ textAlign: "center", padding: "12px 0" }}>
+                        <p style={{ margin: "4px 0" }}>{addNumberCommas(data.streams)} streams</p>
+                        <p style={{ margin: "4px 0" }}>{(data.musicHours ?? 0).toFixed(1)} hours listened</p>
+                        <p style={{ margin: "4px 0" }}>{addNumberCommas(data.uniqueStreams)} unique streams</p>
                     </BubbleBox>
                 </div>
-                <div style={{
-                    display: "flex",
-                    margin: "auto",
-                    justifyContent: "space-evenly",
-                    width: "45%",
-                }}>
-                    <BubbleBox>
-                    <p>{addNumberCommas(data.podcastPlays)} podcast plays</p>
-                    <p>{(data.podcastHours ?? 0).toFixed(1)} hours listened</p>
-                </BubbleBox>
-                </div>
+
+                {/* Podcast Stats */}
                 <div>
-                    <button style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        padding: "4px 12px",
-                        minWidth: "120px",
-                        minHeight: "60px",
-                    }} onClick={() => setExpanded(!expanded)}>
-                        {expanded ? 'Hide Details' : 'Show Details'}
-                    </button>
+                    <BubbleBox style={{ textAlign: "center", padding: "12px 0" }}>
+                        <p style={{ margin: "4px 0" }}>{addNumberCommas(data.podcastPlays)} podcast plays</p>
+                        <p style={{ margin: "4px 0" }}>{(data.podcastHours ?? 0).toFixed(1)} hours listened</p>
+                    </BubbleBox>
+                </div>
+
+                {/* Button */}
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                    <ToggleButton
+                        expanded={expanded}
+                        onClick={() => setExpanded(!expanded)}
+                        labelOn={"Hide Details"}
+                        labelOff={"Show Details"}
+                        />
                 </div>
             </StyledRow>
         {expanded && (
@@ -890,7 +951,7 @@ function DataTabs({ topStatsData, topYearsData, topDaysData }) {
                 </TabPanel>
 
                 <TabPanel value="8">
-                    <TabPanelContent description="Here are some stats for each year that you've used Spotify, starting from the beginning! Music on the left, podcasts on the right.">
+                    <TabPanelContent description="Here are some stats for each year that you've used Spotify starting from the beginning! Music on the left, podcasts on the right.">
                         {topYearsContent}
                     </TabPanelContent>
                 </TabPanel>
