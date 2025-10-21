@@ -4,7 +4,7 @@ Spotify’s annual “Spotify Wrapped” is a highly anticipated review that off
 
 Building on that idea, I wanted to create an application that goes deeper by allowing users to explore their entire listening history from the moment they created their Spotify account — not just the past year.
 
-By clicking the “Request Spotify Data” link, any Spotify user can download their full listening history as a .zip archive containing multiple .json files. These files, while comprehensive, are not very user-friendly on their own. This application allows users to upload that .zip file and instantly transform the raw data into clean, engaging, and insightful visualizations.
+By clicking the “Request Spotify Data” link below, any Spotify user can download their full listening history as a .zip archive containing multiple .json files. These files, while comprehensive, are not very user-friendly on their own. This application allows users to upload that .zip file and instantly transform the raw data into clean, engaging, and insightful visualizations.
 
 Users will get personalized access to:
 
@@ -16,10 +16,10 @@ Users will get personalized access to:
 I’m excited to share this tool and would love to hear from others about what additional stats or insights they’d find interesting when analyzing their complete Spotify listening history.
 
 
-Heroku was used to deploy the project to the cloud. The link can be found below.
+Heroku was used to deploy the project to the cloud. The link can be found here.
 https://spotify-data-app-1b77764f2012.herokuapp.com/
 
-**Request Spotify Data**
+**Request Spotify Data (Needed to use the app)**
 https://www.spotify.com/us/account/privacy/
 
 
