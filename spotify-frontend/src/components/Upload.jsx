@@ -142,7 +142,7 @@ export default function Upload({ onUploadComplete }) {
                         </HoverLink>{" "} and scroll down to the "Download your data" section.
                     </li>
                     <li>
-                        Uncheck "Select account data", and check "Select extended streaming history".
+                        Uncheck "Select account data", and check "Select extended streaming history". Then hit the "Request data" button below.
                     </li>
 
                 </ol>
@@ -156,18 +156,20 @@ export default function Upload({ onUploadComplete }) {
                 <h2>Upload your data</h2>
                 <p>
                     When Spotify sends you the email that your data is ready to be downloaded, follow their instructions to download your data.
-                    Inside the .zip file is a bunch of JSON files that are virtually useless on their own. It's data that is not very readable, and that isn't compiled in any way.
+                </p>
+                <p>
+                    Once downloaded, you might see that inside the .zip file there are a bunch of JSON files with your raw Spotify data. The data is not very readable, and that isn't compiled in any way.
                 </p>
                 <h4>
                     That's where this app comes in handy! Upload your .zip file below and we'll do the rest.
                 </h4>
                 <p>
-                    <em>Your data will not be uploaded into any database.</em>
+                    <em style={{fontSize: ".85rem"}}>Your data will not be uploaded into any database.</em>
                 </p>
             </div>
             {uploadButton}
             <p style={{ width: "55%", fontSize: ".85rem" }}>
-                If you want to do a deep dive on how the raw data looks, visit{" "}
+                If you want to do a deeper dive on how the raw data looks and is interpreted, visit{" "}
                 <HoverLink href="https://support.spotify.com/us/article/understanding-my-data/#_gl=1*13r3kp5*_gcl_au*MjA4MDgyNTQ4Mi4xNzQ2MTA1NDI1">
                     Spotify's page on understanding the data
                 </HoverLink>{" "}
