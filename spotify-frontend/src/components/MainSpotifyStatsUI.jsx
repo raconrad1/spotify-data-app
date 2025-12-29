@@ -630,12 +630,22 @@ function DayEntries({ day, entries, dayTotalMs, topStatsData })     {
     );
 }
 
-function YearStatRow({ year, data, topStatsData}) {
-    const [expanded, setExpanded] = useState(false);
+function YearStatRow({ year, data, topStatsData }) {
+    const [yearExpanded, setYearExpanded] = useState(false);
+    const [expandedMonths, setExpandedMonths] = useState({});
+
+    const toggleMonth = (month) => {
+        setExpandedMonths(prev => ({
+            ...prev,
+            [month]: !prev[month]
+        }));
+    };
 
     return (
-        <Box key={year} style={{ padding: "30px 0 30px 0",}}>
-            <StyledRow style={{
+        <Box style={{ padding: "30px 0" }}>
+            {/* YEAR ROW */}
+            <StyledRow
+                style={{
                     display: "grid",
                     gridTemplateColumns: "0.8fr 2fr 2fr auto",
                     alignItems: "center",
@@ -644,61 +654,84 @@ function YearStatRow({ year, data, topStatsData}) {
                     borderRadius: "16px",
                     backgroundColor: "#fafafa",
                     boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                }}>
-                {/* Year */}
+                }}
+            >
                 <div style={{ textAlign: "center" }}>
                     <h2 style={{ margin: 0, fontSize: "1.8rem" }}>
                         <b>{year}</b>
                     </h2>
                 </div>
 
-                {/* Music Stats */}
-                <div>
-                    <BubbleBox style={{ textAlign: "center", padding: "12px 0" }}>
-                        <p style={{ margin: "4px 0" }}>{addNumberCommas(data.streams)} streams</p>
-                        <p style={{ margin: "4px 0" }}>{(data.musicHours ?? 0).toFixed(1)} hours listened to music</p>
-                        <p style={{ margin: "4px 0" }}>{addNumberCommas(data.uniqueStreams)} unique streams</p>
-                    </BubbleBox>
-                </div>
+                {/* MUSIC */}
+                <BubbleBox style={{ textAlign: "center", padding: "12px 0" }}>
+                    <p>{addNumberCommas(data.streams)} streams</p>
+                    <p>{(data.musicHours ?? 0).toFixed(1)} hours music</p>
+                    <p>{addNumberCommas(data.uniqueStreams)} unique streams</p>
+                </BubbleBox>
 
-                {/* Podcast Stats */}
-                <div>
-                    <BubbleBox style={{ textAlign: "center", padding: "12px 0" }}>
-                        <p style={{ margin: "4px 0" }}>{addNumberCommas(data.podcastPlays)} podcast plays</p>
-                        <p style={{ margin: "4px 0" }}>{(data.podcastHours ?? 0).toFixed(1)} hours listened to podcasts</p>
-                    </BubbleBox>
-                </div>
+                {/* PODCAST */}
+                <BubbleBox style={{ textAlign: "center", padding: "12px 0" }}>
+                    <p>{addNumberCommas(data.podcastPlays)} podcast plays</p>
+                    <p>{(data.podcastHours ?? 0).toFixed(1)} hours podcasts</p>
+                </BubbleBox>
 
-                {/* Button */}
+                {/* TOGGLE YEAR */}
                 <div style={{ display: "flex", justifyContent: "center" }}>
                     <ToggleButton
-                        expanded={expanded}
-                        onClick={() => setExpanded(!expanded)}
-                        labelOn={"Hide Details"}
-                        labelOff={"Show Details"}
-                        />
+                        expanded={yearExpanded}
+                        onClick={() => setYearExpanded(!yearExpanded)}
+                        labelOn="Hide Months"
+                        labelOff="Show Months"
+                    />
                 </div>
             </StyledRow>
-        {expanded && (
-            <div>
-                {Object.entries(data.entriesOfTheYear || {}).map(([year, entries]) => (
-                    <div key={year}>
-                        {groupByDay(entries).map(({ dayLabel, entries, dayTotalMs }) => (
-                            <DayEntries
-                                key={dayLabel}
-                                day={dayLabel}
-                                entries={entries}
-                                dayTotalMs={dayTotalMs}
-                                topStatsData={topStatsData}
-                            />
-                        ))}
 
-                    </div>
-            ))}
-        </div>
-    )}
-    </Box>
-)}
+            {/* MONTHS */}
+            {yearExpanded && (
+                <Box style={{ marginTop: "16px", paddingLeft: "24px" }}>
+                    {Object.entries(data.entriesOfTheYear?.[year] || {})
+                        .sort(([a], [b]) => a.localeCompare(b))
+                        .map(([month, entries]) => (
+                            <Box key={month} style={{ marginBottom: "12px" }}>
+                                {/* MONTH HEADER */}
+                                <StyledRow
+                                    style={{
+                                        gridTemplateColumns: "1fr auto",
+                                        backgroundColor: "#ffffff",
+                                    }}
+                                >
+                                    <strong>
+                                        {new Date(`${year}-${month}-01`).toLocaleString('default', {
+                                            month: 'long',
+                                        })}
+                                    </strong>
+
+                                    <ToggleButton
+                                        expanded={expandedMonths[month]}
+                                        onClick={() => toggleMonth(month)}
+                                        labelOn="Hide Days"
+                                        labelOff="Show Days"
+                                    />
+                                </StyledRow>
+
+                                {/* DAYS */}
+                                {expandedMonths[month] &&
+                                    groupByDay(entries).map(({ dayLabel, entries, dayTotalMs }) => (
+                                        <DayEntries
+                                            key={dayLabel}
+                                            day={dayLabel}
+                                            entries={entries}
+                                            dayTotalMs={dayTotalMs}
+                                            topStatsData={topStatsData}
+                                        />
+                                    ))}
+                            </Box>
+                        ))}
+                </Box>
+            )}
+        </Box>
+    );
+}
 
 function DataTabs({ topStatsData, topYearsData, topDaysData }) {
     const [value, setValue] = useState('1');
