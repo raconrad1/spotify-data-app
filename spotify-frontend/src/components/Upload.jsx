@@ -156,9 +156,8 @@ export default function Upload({ onUploadComplete }) {
                 <h2>Upload your data</h2>
                 <p>
                     When Spotify sends you the email that your data is ready to be downloaded, follow their instructions to download your data.
-                </p>
-                <p>
-                    Once downloaded, you might see that inside the .zip file there are a bunch of JSON files with your raw Spotify data. The data is not very readable, and that isn't compiled in any way.
+                    Once downloaded, you might see that inside the .zip file there are a bunch of JSON files with your raw Spotify data.
+                    The data is not very readable, and it isn't compiled in any way.
                 </p>
                 <h4>
                     That's where this app comes in handy! Upload your .zip file below and we'll do the rest.
