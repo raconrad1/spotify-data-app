@@ -641,6 +641,21 @@ function YearStatRow({ year, data, topStatsData }) {
         }));
     };
 
+    const MONTH_INDEX = {
+        january: 0,
+        february: 1,
+        march: 2,
+        april: 3,
+        may: 4,
+        june: 5,
+        july: 6,
+        august: 7,
+        september: 8,
+        october: 9,
+        november: 10,
+        december: 11,
+    };
+
     return (
         <Box style={{ padding: "30px 0" }}>
             {/* YEAR ROW */}
@@ -690,7 +705,11 @@ function YearStatRow({ year, data, topStatsData }) {
             {yearExpanded && (
                 <Box style={{ marginTop: "16px", paddingLeft: "24px" }}>
                     {Object.entries(data.entriesOfTheYear?.[year] || {})
-                        .sort(([a], [b]) => a.localeCompare(b))
+                        .sort(([a], [b]) => {
+                            const aIndex = MONTH_INDEX[a.toLowerCase()] ?? 99;
+                            const bIndex = MONTH_INDEX[b.toLowerCase()] ?? 99;
+                            return aIndex - bIndex;
+                        })
                         .map(([month, entries]) => (
                             <Box key={month} style={{ marginBottom: "12px" }}>
                                 {/* MONTH HEADER */}
